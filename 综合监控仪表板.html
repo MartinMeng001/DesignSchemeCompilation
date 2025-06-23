@@ -1,0 +1,566 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GA/T 1049.2 交通信号控制系统 - 综合监控仪表板</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            color: #fff;
+            overflow-x: hidden;
+        }
+
+        .header {
+            background: rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(10px);
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #00ff88;
+        }
+
+        .status-bar {
+            display: flex;
+            gap: 2rem;
+            align-items: center;
+        }
+
+        .status-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            backdrop-filter: blur(5px);
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+
+        .online { background: #00ff88; }
+        .offline { background: #ff4757; }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .main-container {
+            display: grid;
+            grid-template-columns: 300px 1fr;
+            height: calc(100vh - 80px);
+        }
+
+        .sidebar {
+            background: rgba(0, 0, 0, 0.4);
+            backdrop-filter: blur(15px);
+            padding: 2rem;
+            border-right: 1px solid rgba(255, 255, 255, 0.1);
+            overflow-y: auto;
+        }
+
+        .nav-menu {
+            list-style: none;
+        }
+
+        .nav-item {
+            margin-bottom: 1rem;
+        }
+
+        .nav-link {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 1rem;
+            text-decoration: none;
+            color: #fff;
+            border-radius: 10px;
+            transition: all 0.3s ease;
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .nav-link:hover, .nav-link.active {
+            background: rgba(0, 255, 136, 0.2);
+            transform: translateX(5px);
+        }
+
+        .nav-icon {
+            width: 20px;
+            height: 20px;
+            opacity: 0.8;
+        }
+
+        .content-area {
+            padding: 2rem;
+            overflow-y: auto;
+        }
+
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .card {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(15px);
+            border-radius: 15px;
+            padding: 1.5rem;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .card-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #00ff88;
+        }
+
+        .metric-value {
+            font-size: 2rem;
+            font-weight: bold;
+            margin: 0.5rem 0;
+        }
+
+        .metric-label {
+            opacity: 0.8;
+            font-size: 0.9rem;
+        }
+
+        .chart-container {
+            height: 200px;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-top: 1rem;
+        }
+
+        .intersection-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 1rem;
+        }
+
+        .intersection-card {
+            background: rgba(255, 255, 255, 0.08);
+            border-radius: 12px;
+            padding: 1rem;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        .intersection-card:hover {
+            background: rgba(255, 255, 255, 0.15);
+        }
+
+        .intersection-id {
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+            color: #00ff88;
+        }
+
+        .signal-lights {
+            display: flex;
+            justify-content: center;
+            gap: 0.5rem;
+            margin: 1rem 0;
+        }
+
+        .light {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .light.red { background: #ff4757; box-shadow: 0 0 15px #ff4757; }
+        .light.yellow { background: #ffa502; box-shadow: 0 0 15px #ffa502; }
+        .light.green { background: #00ff88; box-shadow: 0 0 15px #00ff88; }
+
+        .controls-panel {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 15px;
+            padding: 2rem;
+            margin-top: 2rem;
+        }
+
+        .control-buttons {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 0.8rem 1.5rem;
+            border: none;
+            border-radius: 8px;
+            background: linear-gradient(45deg, #00ff88, #00d9ff);
+            color: #000;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 10px 20px rgba(0, 255, 136, 0.3);
+        }
+
+        .btn.secondary {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: #fff;
+        }
+
+        .log-panel {
+            background: rgba(0, 0, 0, 0.5);
+            border-radius: 10px;
+            padding: 1rem;
+            height: 200px;
+            overflow-y: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 0.85rem;
+        }
+
+        .log-entry {
+            margin-bottom: 0.5rem;
+            padding: 0.3rem;
+            border-radius: 5px;
+        }
+
+        .log-entry.info { background: rgba(0, 255, 136, 0.1); }
+        .log-entry.warning { background: rgba(255, 165, 2, 0.1); }
+        .log-entry.error { background: rgba(255, 71, 87, 0.1); }
+
+        .floating-actions {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .fab {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            border: none;
+            background: linear-gradient(45deg, #00ff88, #00d9ff);
+            color: #000;
+            font-size: 1.5rem;
+            cursor: pointer;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+            transition: all 0.3s ease;
+        }
+
+        .fab:hover {
+            transform: scale(1.1);
+            box-shadow: 0 12px 35px rgba(0, 255, 136, 0.4);
+        }
+
+        @media (max-width: 768px) {
+            .main-container {
+                grid-template-columns: 1fr;
+            }
+            
+            .sidebar {
+                position: fixed;
+                left: -300px;
+                top: 80px;
+                height: calc(100vh - 80px);
+                z-index: 1000;
+                transition: left 0.3s ease;
+            }
+            
+            .sidebar.open {
+                left: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="logo">🚦 GA/T 1049.2 交通信号控制系统</div>
+        <div class="status-bar">
+            <div class="status-item">
+                <div class="status-dot online"></div>
+                <span>TCP连接正常</span>
+            </div>
+            <div class="status-item">
+                <div class="status-dot online"></div>
+                <span>会话活跃</span>
+            </div>
+            <div class="status-item">
+                <span>路口: 110100001</span>
+            </div>
+            <div class="status-item">
+                <span id="current-time">2025-06-23 15:30:25</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="main-container">
+        <aside class="sidebar">
+            <nav>
+                <ul class="nav-menu">
+                    <li class="nav-item">
+                        <a href="#dashboard" class="nav-link active">
+                            <span class="nav-icon">📊</span>
+                            <span>实时监控</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="#intersections" class="nav-link">
+                            <span class="nav-icon">🚦</span>
+                            <span>路口管理</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="#control" class="nav-link">
+                            <span class="nav-icon">🎛️</span>
+                            <span>信号控制</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="#plan" class="nav-link">
+                            <span class="nav-icon">📋</span>
+                            <span>预案管理</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="#data" class="nav-link">
+                            <span class="nav-icon">📈</span>
+                            <span>数据分析</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="#system" class="nav-link">
+                            <span class="nav-icon">⚙️</span>
+                            <span>系统设置</span>
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+        </aside>
+
+        <main class="content-area">
+            <div class="dashboard-grid">
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">系统状态</h3>
+                    </div>
+                    <div class="metric-value">正常运行</div>
+                    <div class="metric-label">在线路口: 12个</div>
+                    <div class="metric-label">活跃会话: 3个</div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">消息统计</h3>
+                    </div>
+                    <div class="metric-value">1,247</div>
+                    <div class="metric-label">今日处理消息数</div>
+                    <div class="chart-container">📊 实时消息流量图</div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">交通流量</h3>
+                    </div>
+                    <div class="metric-value">658</div>
+                    <div class="metric-label">当前小时车流量</div>
+                    <div class="chart-container">🚗 流量趋势图</div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">告警信息</h3>
+                    </div>
+                    <div class="metric-value" style="color: #ffa502;">2</div>
+                    <div class="metric-label">待处理告警</div>
+                    <div style="margin-top: 1rem;">
+                        <div style="color: #ffa502; font-size: 0.9rem;">⚠️ 设备通信异常</div>
+                        <div style="color: #ff4757; font-size: 0.9rem;">🔴 信号灯故障</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">路口实时状态</h3>
+                </div>
+                <div class="intersection-grid">
+                    <div class="intersection-card">
+                        <div class="intersection-id">路口 110100001</div>
+                        <div class="signal-lights">
+                            <div class="light red"></div>
+                            <div class="light"></div>
+                            <div class="light"></div>
+                        </div>
+                        <div>当前阶段: 1 | 剩余: 25s</div>
+                    </div>
+                    <div class="intersection-card">
+                        <div class="intersection-id">路口 110100002</div>
+                        <div class="signal-lights">
+                            <div class="light"></div>
+                            <div class="light"></div>
+                            <div class="light green"></div>
+                        </div>
+                        <div>当前阶段: 3 | 剩余: 42s</div>
+                    </div>
+                    <div class="intersection-card">
+                        <div class="intersection-id">路口 110100003</div>
+                        <div class="signal-lights">
+                            <div class="light"></div>
+                            <div class="light yellow"></div>
+                            <div class="light"></div>
+                        </div>
+                        <div>当前阶段: 2 | 剩余: 3s</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="controls-panel">
+                <h3 style="margin-bottom: 1rem; color: #00ff88;">快速操作</h3>
+                <div class="control-buttons">
+                    <button class="btn" onclick="performAction('login')">重新登录</button>
+                    <button class="btn" onclick="performAction('subscribe')">订阅数据</button>
+                    <button class="btn secondary" onclick="performAction('query')">查询状态</button>
+                    <button class="btn secondary" onclick="performAction('heartbeat')">发送心跳</button>
+                    <button class="btn secondary" onclick="performAction('emergency')">紧急控制</button>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">系统日志</h3>
+                </div>
+                <div class="log-panel" id="logPanel">
+                    <div class="log-entry info">[15:30:25] 成功连接到服务器 localhost:9999</div>
+                    <div class="log-entry info">[15:30:26] 用户 tsc_client 登录成功</div>
+                    <div class="log-entry info">[15:30:27] 订阅交通流数据成功</div>
+                    <div class="log-entry warning">[15:30:45] 路口 110100003 信号灯响应延迟</div>
+                    <div class="log-entry info">[15:31:02] 收到心跳响应</div>
+                    <div class="log-entry error">[15:31:15] 路口 110100005 通信中断</div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <div class="floating-actions">
+        <button class="fab" onclick="showHelp()" title="帮助">❓</button>
+        <button class="fab" onclick="showSettings()" title="设置">⚙️</button>
+        <button class="fab" onclick="toggleFullscreen()" title="全屏">⛶</button>
+    </div>
+
+    <script>
+        // 更新时间
+        function updateTime() {
+            const now = new Date();
+            document.getElementById('current-time').textContent = now.toLocaleString('zh-CN');
+        }
+        setInterval(updateTime, 1000);
+
+        // 模拟数据更新
+        function updateMetrics() {
+            // 这里可以通过WebSocket或API获取实时数据
+            console.log('更新实时数据...');
+        }
+        setInterval(updateMetrics, 5000);
+
+        // 执行操作
+        function performAction(action) {
+            const logPanel = document.getElementById('logPanel');
+            const time = new Date().toLocaleTimeString();
+            
+            let message = '';
+            let type = 'info';
+            
+            switch(action) {
+                case 'login':
+                    message = `[${time}] 执行重新登录操作`;
+                    break;
+                case 'subscribe':
+                    message = `[${time}] 发送数据订阅请求`;
+                    break;
+                case 'query':
+                    message = `[${time}] 查询系统状态`;
+                    break;
+                case 'heartbeat':
+                    message = `[${time}] 发送心跳消息`;
+                    break;
+                case 'emergency':
+                    message = `[${time}] 启动紧急控制模式`;
+                    type = 'warning';
+                    break;
+            }
+            
+            const logEntry = document.createElement('div');
+            logEntry.className = `log-entry ${type}`;
+            logEntry.textContent = message;
+            logPanel.appendChild(logEntry);
+            logPanel.scrollTop = logPanel.scrollHeight;
+        }
+
+        function showHelp() {
+            alert('GA/T 1049.2 交通信号控制系统\n\n功能说明：\n• 实时监控路口状态\n• 远程信号控制\n• 数据订阅推送\n• 预案管理\n• 系统诊断');
+        }
+
+        function showSettings() {
+            alert('系统设置功能开发中...');
+        }
+
+        function toggleFullscreen() {
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen();
+            } else {
+                document.exitFullscreen();
+            }
+        }
+
+        // 导航功能
+        document.querySelectorAll('.nav-link').forEach(link => {
+            link.addEventListener('click', function(e) {
+                e.preventDefault();
+                document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
+                this.classList.add('active');
+            });
+        });
+    </script>
+</body>
+</html>

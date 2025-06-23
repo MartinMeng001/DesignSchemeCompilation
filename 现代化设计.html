@@ -1,0 +1,618 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GA/T 1049交通信号控制系统管理平台</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #0f1419 0%, #1a2332 100%);
+            color: #e5e7eb;
+            min-height: 100vh;
+        }
+
+        .container {
+            display: grid;
+            grid-template-columns: 280px 1fr;
+            grid-template-rows: 70px 1fr;
+            grid-template-areas: 
+                "sidebar header"
+                "sidebar main";
+            min-height: 100vh;
+        }
+
+        /* 头部导航 */
+        .header {
+            grid-area: header;
+            background: rgba(15, 20, 25, 0.95);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(59, 130, 246, 0.3);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 2rem;
+        }
+
+        .header h1 {
+            color: #3b82f6;
+            font-size: 1.5rem;
+            font-weight: 600;
+        }
+
+        .status-indicator {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            background: rgba(34, 197, 94, 0.1);
+            border: 1px solid rgba(34, 197, 94, 0.3);
+            border-radius: 50px;
+            font-size: 0.875rem;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            background: #22c55e;
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        /* 侧边栏 */
+        .sidebar {
+            grid-area: sidebar;
+            background: rgba(15, 20, 25, 0.95);
+            backdrop-filter: blur(10px);
+            border-right: 1px solid rgba(59, 130, 246, 0.3);
+            padding: 2rem 0;
+        }
+
+        .nav-menu {
+            list-style: none;
+            padding: 0 1rem;
+        }
+
+        .nav-item {
+            margin-bottom: 0.5rem;
+        }
+
+        .nav-link {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 1rem;
+            color: #9ca3af;
+            text-decoration: none;
+            border-radius: 12px;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .nav-link:hover,
+        .nav-link.active {
+            background: linear-gradient(135deg, rgba(59, 130, 246, 0.1) 0%, rgba(147, 51, 234, 0.1) 100%);
+            color: #3b82f6;
+            transform: translateX(5px);
+        }
+
+        .nav-link::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            height: 100%;
+            width: 3px;
+            background: #3b82f6;
+            transform: scaleY(0);
+            transition: transform 0.3s ease;
+        }
+
+        .nav-link:hover::before,
+        .nav-link.active::before {
+            transform: scaleY(1);
+        }
+
+        /* 主内容区 */
+        .main-content {
+            grid-area: main;
+            padding: 2rem;
+            overflow-y: auto;
+        }
+
+        /* 仪表板网格 */
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        /* 卡片样式 */
+        .card {
+            background: rgba(31, 41, 55, 0.8);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(75, 85, 99, 0.3);
+            border-radius: 16px;
+            padding: 2rem;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, #3b82f6 0%, #8b5cf6 50%, #06b6d4 100%);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+            border-color: rgba(59, 130, 246, 0.5);
+        }
+
+        .card:hover::before {
+            opacity: 1;
+        }
+
+        .card-header {
+            display: flex;
+            align-items: center;
+            justify-content: between;
+            margin-bottom: 1.5rem;
+        }
+
+        .card-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: #f9fafb;
+        }
+
+        .card-icon {
+            width: 2.5rem;
+            height: 2.5rem;
+            padding: 0.5rem;
+            background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 1rem;
+        }
+
+        /* 统计数字 */
+        .stat-number {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: #3b82f6;
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-label {
+            color: #9ca3af;
+            font-size: 0.875rem;
+        }
+
+        /* 实时监控区域 */
+        .monitoring-section {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 2rem;
+            margin-top: 2rem;
+        }
+
+        .traffic-map {
+            background: rgba(31, 41, 55, 0.8);
+            border: 1px solid rgba(75, 85, 99, 0.3);
+            border-radius: 16px;
+            padding: 2rem;
+            min-height: 400px;
+            position: relative;
+        }
+
+        .map-placeholder {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            background: linear-gradient(135deg, rgba(59, 130, 246, 0.05) 0%, rgba(147, 51, 234, 0.05) 100%);
+            border: 2px dashed rgba(59, 130, 246, 0.3);
+            border-radius: 12px;
+            color: #9ca3af;
+            font-size: 1.125rem;
+        }
+
+        .activity-log {
+            background: rgba(31, 41, 55, 0.8);
+            border: 1px solid rgba(75, 85, 99, 0.3);
+            border-radius: 16px;
+            padding: 2rem;
+        }
+
+        .log-item {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 1rem;
+            border-bottom: 1px solid rgba(75, 85, 99, 0.2);
+            transition: all 0.3s ease;
+        }
+
+        .log-item:hover {
+            background: rgba(59, 130, 246, 0.05);
+        }
+
+        .log-icon {
+            width: 2rem;
+            height: 2rem;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.875rem;
+        }
+
+        .log-icon.success {
+            background: rgba(34, 197, 94, 0.2);
+            color: #22c55e;
+        }
+
+        .log-icon.warning {
+            background: rgba(251, 191, 36, 0.2);
+            color: #fbbf24;
+        }
+
+        .log-icon.error {
+            background: rgba(239, 68, 68, 0.2);
+            color: #ef4444;
+        }
+
+        /* 按钮样式 */
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(59, 130, 246, 0.3);
+        }
+
+        /* 响应式设计 */
+        @media (max-width: 768px) {
+            .container {
+                grid-template-columns: 1fr;
+                grid-template-areas: 
+                    "header"
+                    "main";
+            }
+
+            .sidebar {
+                display: none;
+            }
+
+            .monitoring-section {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* 数据表格 */
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1rem;
+        }
+
+        .data-table th,
+        .data-table td {
+            padding: 1rem;
+            text-align: left;
+            border-bottom: 1px solid rgba(75, 85, 99, 0.3);
+        }
+
+        .data-table th {
+            background: rgba(59, 130, 246, 0.1);
+            color: #3b82f6;
+            font-weight: 600;
+        }
+
+        .data-table tr:hover {
+            background: rgba(59, 130, 246, 0.05);
+        }
+
+        /* 状态标签 */
+        .status-badge {
+            padding: 0.25rem 0.75rem;
+            border-radius: 50px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .status-badge.online {
+            background: rgba(34, 197, 94, 0.2);
+            color: #22c55e;
+        }
+
+        .status-badge.offline {
+            background: rgba(239, 68, 68, 0.2);
+            color: #ef4444;
+        }
+
+        .status-badge.warning {
+            background: rgba(251, 191, 36, 0.2);
+            color: #fbbf24;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <h1>GA/T 1049 交通信号控制系统</h1>
+            <div class="status-indicator">
+                <div class="status-dot"></div>
+                <span>系统运行正常</span>
+            </div>
+        </header>
+
+        <nav class="sidebar">
+            <ul class="nav-menu">
+                <li class="nav-item">
+                    <a href="#" class="nav-link active">
+                        <div class="card-icon">📊</div>
+                        系统概览
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="#" class="nav-link">
+                        <div class="card-icon">🚦</div>
+                        信号机管理
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="#" class="nav-link">
+                        <div class="card-icon">🗺️</div>
+                        路口监控
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="#" class="nav-link">
+                        <div class="card-icon">📡</div>
+                        会话管理
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="#" class="nav-link">
+                        <div class="card-icon">📈</div>
+                        数据分析
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="#" class="nav-link">
+                        <div class="card-icon">⚙️</div>
+                        系统配置
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="#" class="nav-link">
+                        <div class="card-icon">📋</div>
+                        日志管理
+                    </a>
+                </li>
+            </ul>
+        </nav>
+
+        <main class="main-content">
+            <!-- 仪表板统计卡片 -->
+            <div class="dashboard-grid">
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-icon">🔗</div>
+                        <div>
+                            <h3 class="card-title">在线连接</h3>
+                        </div>
+                    </div>
+                    <div class="stat-number" id="onlineConnections">24</div>
+                    <div class="stat-label">活跃客户端连接</div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-icon">🚦</div>
+                        <div>
+                            <h3 class="card-title">信号机</h3>
+                        </div>
+                    </div>
+                    <div class="stat-number" id="signalControllers">156</div>
+                    <div class="stat-label">在线信号机设备</div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-icon">🛣️</div>
+                        <div>
+                            <h3 class="card-title">路口</h3>
+                        </div>
+                    </div>
+                    <div class="stat-number" id="intersections">89</div>
+                    <div class="stat-label">监控路口数量</div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-icon">📊</div>
+                        <div>
+                            <h3 class="card-title">消息处理</h3>
+                        </div>
+                    </div>
+                    <div class="stat-number" id="messageRate">1,234</div>
+                    <div class="stat-label">每分钟消息数</div>
+                </div>
+            </div>
+
+            <!-- 实时监控区域 -->
+            <div class="monitoring-section">
+                <div class="traffic-map">
+                    <h3 class="card-title" style="margin-bottom: 1.5rem;">实时交通监控地图</h3>
+                    <div class="map-placeholder">
+                        <div style="text-align: center;">
+                            <div style="font-size: 3rem; margin-bottom: 1rem;">🗺️</div>
+                            <div>交通监控地图区域</div>
+                            <div style="font-size: 0.875rem; margin-top: 0.5rem; color: #6b7280;">
+                                显示实时路口状态和信号机位置
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="activity-log">
+                    <h3 class="card-title" style="margin-bottom: 1.5rem;">系统活动日志</h3>
+                    <div class="log-item">
+                        <div class="log-icon success">✓</div>
+                        <div>
+                            <div style="font-weight: 600;">信号机上线</div>
+                            <div style="font-size: 0.875rem; color: #9ca3af;">设备ID: 11010000100010001</div>
+                            <div style="font-size: 0.75rem; color: #6b7280;">2分钟前</div>
+                        </div>
+                    </div>
+                    <div class="log-item">
+                        <div class="log-icon warning">⚠</div>
+                        <div>
+                            <div style="font-weight: 600;">通信超时</div>
+                            <div style="font-size: 0.875rem; color: #9ca3af;">路口ID: 11010000100003</div>
+                            <div style="font-size: 0.75rem; color: #6b7280;">5分钟前</div>
+                        </div>
+                    </div>
+                    <div class="log-item">
+                        <div class="log-icon success">✓</div>
+                        <div>
+                            <div style="font-weight: 600;">预案切换成功</div>
+                            <div style="font-size: 0.875rem; color: #9ca3af;">路口: 建国门大街</div>
+                            <div style="font-size: 0.75rem; color: #6b7280;">8分钟前</div>
+                        </div>
+                    </div>
+                    <div class="log-item">
+                        <div class="log-icon error">✗</div>
+                        <div>
+                            <div style="font-weight: 600;">设备故障</div>
+                            <div style="font-size: 0.875rem; color: #9ca3af;">检测器异常</div>
+                            <div style="font-size: 0.75rem; color: #6b7280;">12分钟前</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 设备状态表格 -->
+            <div class="card" style="margin-top: 2rem;">
+                <div class="card-header">
+                    <div class="card-icon">📋</div>
+                    <h3 class="card-title">信号机设备状态</h3>
+                </div>
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>设备ID</th>
+                            <th>位置</th>
+                            <th>供应商</th>
+                            <th>状态</th>
+                            <th>最后通信</th>
+                            <th>操作</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>11010000100010001</td>
+                            <td>建国门大街 × 朝阳门内大街</td>
+                            <td>海信网络</td>
+                            <td><span class="status-badge online">在线</span></td>
+                            <td>刚刚</td>
+                            <td><button class="btn btn-primary">查看详情</button></td>
+                        </tr>
+                        <tr>
+                            <td>11010000100020001</td>
+                            <td>长安街 × 王府井大街</td>
+                            <td>大华技术</td>
+                            <td><span class="status-badge warning">警告</span></td>
+                            <td>2分钟前</td>
+                            <td><button class="btn btn-primary">查看详情</button></td>
+                        </tr>
+                        <tr>
+                            <td>11010000100030001</td>
+                            <td>三环路 × 京广桥</td>
+                            <td>大华技术</td>
+                            <td><span class="status-badge online">在线</span></td>
+                            <td>30秒前</td>
+                            <td><button class="btn btn-primary">查看详情</button></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        // 模拟实时数据更新
+        function updateStats() {
+            const stats = {
+                onlineConnections: Math.floor(Math.random() * 10) + 20,
+                signalControllers: Math.floor(Math.random() * 20) + 150,
+                intersections: 89,
+                messageRate: Math.floor(Math.random() * 500) + 1000
+            };
+
+            Object.keys(stats).forEach(key => {
+                const element = document.getElementById(key);
+                if (element) {
+                    element.textContent = stats[key].toLocaleString();
+                }
+            });
+        }
+
+        // 导航激活状态切换
+        document.querySelectorAll('.nav-link').forEach(link => {
+            link.addEventListener('click', function(e) {
+                e.preventDefault();
+                document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
+                this.classList.add('active');
+            });
+        });
+
+        // 每30秒更新一次统计数据
+        setInterval(updateStats, 30000);
+        
+        // 初始加载
+        updateStats();
+    </script>
+</body>
+</html>

@@ -1,0 +1,1169 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GA/T 1049 交通信号控制系统</title>
+    <style>
+        :root {
+            --primary-color: #2563eb;
+            --secondary-color: #64748b;
+            --success-color: #16a34a;
+            --warning-color: #ea580c;
+            --danger-color: #dc2626;
+            --gray-50: #f8fafc;
+            --gray-100: #f1f5f9;
+            --gray-200: #e2e8f0;
+            --gray-300: #cbd5e1;
+            --gray-600: #475569;
+            --gray-700: #334155;
+            --gray-900: #0f172a;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--gray-50);
+            color: var(--gray-900);
+            line-height: 1.5;
+        }
+
+        /* 布局容器 */
+        .app-container {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* 侧边栏 */
+        .sidebar {
+            width: 240px;
+            background: white;
+            border-right: 1px solid var(--gray-200);
+            padding: 1.5rem 0;
+            position: fixed;
+            height: 100vh;
+            overflow-y: auto;
+        }
+
+        .logo {
+            padding: 0 1.5rem 2rem;
+            border-bottom: 1px solid var(--gray-200);
+            margin-bottom: 2rem;
+        }
+
+        .logo h1 {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--primary-color);
+        }
+
+        .nav-menu {
+            padding: 0 1rem;
+        }
+
+        .nav-item {
+            margin-bottom: 0.25rem;
+        }
+
+        .nav-link {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.75rem 1rem;
+            color: var(--gray-600);
+            text-decoration: none;
+            border-radius: 6px;
+            font-size: 0.875rem;
+            transition: all 0.2s ease;
+        }
+
+        .nav-link:hover,
+        .nav-link.active {
+            background: var(--gray-100);
+            color: var(--primary-color);
+        }
+
+        .nav-icon {
+            width: 1.25rem;
+            height: 1.25rem;
+            font-size: 1rem;
+        }
+
+        /* 主内容区 */
+        .main-content {
+            flex: 1;
+            margin-left: 240px;
+            padding: 2rem;
+        }
+
+        /* 页面头部 */
+        .page-header {
+            background: white;
+            border: 1px solid var(--gray-200);
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            display: flex;
+            align-items: center;
+            justify-content: between;
+        }
+
+        .page-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--gray-900);
+        }
+
+        .page-subtitle {
+            color: var(--gray-600);
+            font-size: 0.875rem;
+            margin-top: 0.25rem;
+        }
+
+        .status-pills {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .status-pill {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            background: var(--gray-100);
+            border-radius: 50px;
+            font-size: 0.875rem;
+            color: var(--gray-700);
+        }
+
+        .status-pill.success {
+            background: #dcfce7;
+            color: var(--success-color);
+        }
+
+        .status-dot {
+            width: 0.5rem;
+            height: 0.5rem;
+            border-radius: 50%;
+            background: currentColor;
+        }
+
+        /* 网格布局 */
+        .grid {
+            display: grid;
+            gap: 1.5rem;
+        }
+
+        .grid-cols-1 { grid-template-columns: 1fr; }
+        .grid-cols-2 { grid-template-columns: repeat(2, 1fr); }
+        .grid-cols-3 { grid-template-columns: repeat(3, 1fr); }
+        .grid-cols-4 { grid-template-columns: repeat(4, 1fr); }
+
+        /* 卡片组件 */
+        .card {
+            background: white;
+            border: 1px solid var(--gray-200);
+            border-radius: 8px;
+            padding: 1.5rem;
+            transition: box-shadow 0.2s ease;
+        }
+
+        .card:hover {
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+
+        .card-header {
+            display: flex;
+            align-items: center;
+            justify-content: between;
+            margin-bottom: 1rem;
+        }
+
+        .card-title {
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: var(--gray-600);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .card-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--gray-900);
+            margin-bottom: 0.5rem;
+        }
+
+        .card-change {
+            font-size: 0.875rem;
+            color: var(--gray-600);
+        }
+
+        .card-change.positive {
+            color: var(--success-color);
+        }
+
+        .card-change.negative {
+            color: var(--danger-color);
+        }
+
+        /* 表格组件 */
+        .table-container {
+            background: white;
+            border: 1px solid var(--gray-200);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .table-header {
+            padding: 1rem 1.5rem;
+            background: var(--gray-50);
+            border-bottom: 1px solid var(--gray-200);
+            display: flex;
+            align-items: center;
+            justify-content: between;
+        }
+
+        .table-title {
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--gray-900);
+        }
+
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .table th,
+        .table td {
+            padding: 0.75rem 1.5rem;
+            text-align: left;
+            border-bottom: 1px solid var(--gray-200);
+        }
+
+        .table th {
+            background: var(--gray-50);
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: var(--gray-600);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .table tbody tr:hover {
+            background: var(--gray-50);
+        }
+
+        /* 按钮组件 */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            border: 1px solid transparent;
+            border-radius: 6px;
+            font-size: 0.875rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-decoration: none;
+        }
+
+        .btn-primary {
+            background: var(--primary-color);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #1d4ed8;
+        }
+
+        .btn-secondary {
+            background: white;
+            color: var(--gray-700);
+            border-color: var(--gray-300);
+        }
+
+        .btn-secondary:hover {
+            background: var(--gray-50);
+        }
+
+        .btn-sm {
+            padding: 0.375rem 0.75rem;
+            font-size: 0.8rem;
+        }
+
+        /* 状态标签 */
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.25rem;
+            padding: 0.25rem 0.75rem;
+            border-radius: 50px;
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+
+        .badge-success {
+            background: #dcfce7;
+            color: var(--success-color);
+        }
+
+        .badge-warning {
+            background: #fed7aa;
+            color: var(--warning-color);
+        }
+
+        .badge-danger {
+            background: #fecaca;
+            color: var(--danger-color);
+        }
+
+        .badge-secondary {
+            background: var(--gray-100);
+            color: var(--gray-600);
+        }
+
+        /* 页面内容区域 */
+        .page-content {
+            display: none;
+        }
+
+        .page-content.active {
+            display: block;
+        }
+
+        /* 搜索和过滤 */
+        .filters {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .search-input {
+            flex: 1;
+            padding: 0.5rem 0.75rem;
+            border: 1px solid var(--gray-300);
+            border-radius: 6px;
+            font-size: 0.875rem;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+        }
+
+        /* 日志面板 */
+        .log-panel {
+            background: white;
+            border: 1px solid var(--gray-200);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .log-content {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .log-item {
+            padding: 1rem 1.5rem;
+            border-bottom: 1px solid var(--gray-200);
+            display: flex;
+            align-items: flex-start;
+            gap: 1rem;
+        }
+
+        .log-item:last-child {
+            border-bottom: none;
+        }
+
+        .log-time {
+            color: var(--gray-600);
+            font-size: 0.8rem;
+            font-family: 'SF Mono', Monaco, monospace;
+            white-space: nowrap;
+        }
+
+        .log-level {
+            padding: 0.125rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            white-space: nowrap;
+        }
+
+        .log-level.info {
+            background: #dbeafe;
+            color: var(--primary-color);
+        }
+
+        .log-level.warn {
+            background: #fed7aa;
+            color: var(--warning-color);
+        }
+
+        .log-level.error {
+            background: #fecaca;
+            color: var(--danger-color);
+        }
+
+        .log-message {
+            flex: 1;
+            font-size: 0.875rem;
+        }
+
+        /* 响应式设计 */
+        @media (max-width: 1024px) {
+            .sidebar {
+                transform: translateX(-100%);
+                transition: transform 0.3s ease;
+            }
+
+            .sidebar.open {
+                transform: translateX(0);
+            }
+
+            .main-content {
+                margin-left: 0;
+            }
+
+            .grid-cols-4 {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .main-content {
+                padding: 1rem;
+            }
+
+            .grid-cols-4,
+            .grid-cols-3,
+            .grid-cols-2 {
+                grid-template-columns: 1fr;
+            }
+
+            .page-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 1rem;
+            }
+
+            .status-pills {
+                flex-wrap: wrap;
+            }
+        }
+
+        /* 实用工具类 */
+        .mb-4 { margin-bottom: 1rem; }
+        .mb-6 { margin-bottom: 1.5rem; }
+        .text-right { text-align: right; }
+        .font-mono { font-family: 'SF Mono', Monaco, monospace; }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <!-- 侧边栏 -->
+        <aside class="sidebar">
+            <div class="logo">
+                <h1>GAT-1049 控制系统</h1>
+            </div>
+            <nav class="nav-menu">
+                <div class="nav-item">
+                    <a href="#" class="nav-link active" data-page="overview">
+                        <span class="nav-icon">📊</span>
+                        系统概览
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="#" class="nav-link" data-page="controllers">
+                        <span class="nav-icon">🚦</span>
+                        信号机管理
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="#" class="nav-link" data-page="intersections">
+                        <span class="nav-icon">🛣️</span>
+                        路口监控
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="#" class="nav-link" data-page="sessions">
+                        <span class="nav-icon">👥</span>
+                        会话管理
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="#" class="nav-link" data-page="operations">
+                        <span class="nav-icon">⚙️</span>
+                        系统操作
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="#" class="nav-link" data-page="logs">
+                        <span class="nav-icon">📝</span>
+                        日志查看
+                    </a>
+                </div>
+            </nav>
+        </aside>
+
+        <!-- 主内容区 -->
+        <main class="main-content">
+            <!-- 系统概览页面 -->
+            <div class="page-content active" id="overview">
+                <header class="page-header">
+                    <div>
+                        <h1 class="page-title">系统概览</h1>
+                        <p class="page-subtitle">GA/T 1049.1-2013 交通信号控制系统运行状态</p>
+                    </div>
+                    <div class="status-pills">
+                        <div class="status-pill success">
+                            <span class="status-dot"></span>
+                            系统正常运行
+                        </div>
+                        <div class="status-pill">
+                            <span class="status-dot"></span>
+                            协议版本 1049.1
+                        </div>
+                    </div>
+                </header>
+
+                <!-- 统计卡片 -->
+                <div class="grid grid-cols-4 mb-6">
+                    <div class="card">
+                        <div class="card-header">
+                            <span class="card-title">在线连接</span>
+                        </div>
+                        <div class="card-value" id="stat-connections">24</div>
+                        <div class="card-change positive">↑ 2 较昨日</div>
+                    </div>
+                    <div class="card">
+                        <div class="card-header">
+                            <span class="card-title">信号机设备</span>
+                        </div>
+                        <div class="card-value" id="stat-controllers">156</div>
+                        <div class="card-change">共 89 个路口</div>
+                    </div>
+                    <div class="card">
+                        <div class="card-header">
+                            <span class="card-title">消息处理</span>
+                        </div>
+                        <div class="card-value" id="stat-messages">1.2K</div>
+                        <div class="card-change">每分钟平均</div>
+                    </div>
+                    <div class="card">
+                        <div class="card-header">
+                            <span class="card-title">系统健康度</span>
+                        </div>
+                        <div class="card-value" style="color: var(--success-color);">99.8%</div>
+                        <div class="card-change positive">↑ 0.2% 较上周</div>
+                    </div>
+                </div>
+
+                <!-- 最近活动 -->
+                <div class="grid grid-cols-2">
+                    <div class="table-container">
+                        <div class="table-header">
+                            <span class="table-title">设备状态概览</span>
+                        </div>
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>设备类型</th>
+                                    <th>在线</th>
+                                    <th>离线</th>
+                                    <th>故障</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>信号机</td>
+                                    <td><span class="badge badge-success">152</span></td>
+                                    <td><span class="badge badge-secondary">3</span></td>
+                                    <td><span class="badge badge-danger">1</span></td>
+                                </tr>
+                                <tr>
+                                    <td>检测器</td>
+                                    <td><span class="badge badge-success">445</span></td>
+                                    <td><span class="badge badge-secondary">12</span></td>
+                                    <td><span class="badge badge-warning">5</span></td>
+                                </tr>
+                                <tr>
+                                    <td>通信网关</td>
+                                    <td><span class="badge badge-success">24</span></td>
+                                    <td><span class="badge badge-secondary">1</span></td>
+                                    <td><span class="badge badge-secondary">0</span></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="log-panel">
+                        <div class="table-header">
+                            <span class="table-title">最近系统事件</span>
+                        </div>
+                        <div class="log-content">
+                            <div class="log-item">
+                                <div class="log-time">14:35</div>
+                                <div class="log-level info">INFO</div>
+                                <div class="log-message">信号机 110100001001 连接成功</div>
+                            </div>
+                            <div class="log-item">
+                                <div class="log-time">14:33</div>
+                                <div class="log-level warn">WARN</div>
+                                <div class="log-message">路口 建国门大街 检测器异常</div>
+                            </div>
+                            <div class="log-item">
+                                <div class="log-time">14:30</div>
+                                <div class="log-level info">INFO</div>
+                                <div class="log-message">配时方案更新完成</div>
+                            </div>
+                            <div class="log-item">
+                                <div class="log-time">14:28</div>
+                                <div class="log-level error">ERROR</div>
+                                <div class="log-message">通信超时: 设备 110100002001</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 信号机管理页面 -->
+            <div class="page-content" id="controllers">
+                <header class="page-header">
+                    <div>
+                        <h1 class="page-title">信号机管理</h1>
+                        <p class="page-subtitle">查看和管理所有信号机设备</p>
+                    </div>
+                    <button class="btn btn-primary">添加设备</button>
+                </header>
+
+                <div class="table-container">
+                    <div class="table-header">
+                        <span class="table-title">信号机设备列表</span>
+                        <div class="filters">
+                            <input type="text" class="search-input" placeholder="搜索设备ID或位置...">
+                            <button class="btn btn-secondary btn-sm">筛选</button>
+                        </div>
+                    </div>
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>设备ID</th>
+                                <th>位置</th>
+                                <th>供应商</th>
+                                <th>型号</th>
+                                <th>状态</th>
+                                <th>最后通信</th>
+                                <th class="text-right">操作</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td class="font-mono">11010000100010001</td>
+                                <td>建国门大街 × 朝阳门内大街</td>
+                                <td>海信网络</td>
+                                <td>HiSig-200</td>
+                                <td><span class="badge badge-success">在线</span></td>
+                                <td>刚刚</td>
+                                <td class="text-right">
+                                    <button class="btn btn-secondary btn-sm">详情</button>
+                                    <button class="btn btn-primary btn-sm">配置</button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="font-mono">11010000100020001</td>
+                                <td>长安街 × 王府井大街</td>
+                                <td>大华技术</td>
+                                <td>DH-TSC200</td>
+                                <td><span class="badge badge-warning">警告</span></td>
+                                <td>2分钟前</td>
+                                <td class="text-right">
+                                    <button class="btn btn-secondary btn-sm">详情</button>
+                                    <button class="btn btn-primary btn-sm">诊断</button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="font-mono">11010000100030001</td>
+                                <td>三环路 × 京广桥</td>
+                                <td>大华技术</td>
+                                <td>DH-TSC200</td>
+                                <td><span class="badge badge-success">在线</span></td>
+                                <td>30秒前</td>
+                                <td class="text-right">
+                                    <button class="btn btn-secondary btn-sm">详情</button>
+                                    <button class="btn btn-primary btn-sm">配置</button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="font-mono">11010000100040001</td>
+                                <td>二环路 × 崇文门内大街</td>
+                                <td>海信网络</td>
+                                <td>HiSig-300</td>
+                                <td><span class="badge badge-danger">离线</span></td>
+                                <td>5分钟前</td>
+                                <td class="text-right">
+                                    <button class="btn btn-secondary btn-sm">重连</button>
+                                    <button class="btn btn-primary btn-sm">维护</button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- 路口监控页面 -->
+            <div class="page-content" id="intersections">
+                <header class="page-header">
+                    <div>
+                        <h1 class="page-title">路口监控</h1>
+                        <p class="page-subtitle">实时监控所有路口运行状态</p>
+                    </div>
+                </header>
+
+                <div class="grid grid-cols-3 mb-6">
+                    <div class="card">
+                        <div class="card-header">
+                            <span class="card-title">正常运行</span>
+                        </div>
+                        <div class="card-value" style="color: var(--success-color);">85</div>
+                        <div class="card-change">个路口</div>
+                    </div>
+                    <div class="card">
+                        <div class="card-header">
+                            <span class="card-title">需要关注</span>
+                        </div>
+                        <div class="card-value" style="color: var(--warning-color);">3</div>
+                        <div class="card-change">个路口</div>
+                    </div>
+                    <div class="card">
+                        <div class="card-header">
+                            <span class="card-title">故障离线</span>
+                        </div>
+                        <div class="card-value" style="color: var(--danger-color);">1</div>
+                        <div class="card-change">个路口</div>
+                    </div>
+                </div>
+
+                <div class="table-container">
+                    <div class="table-header">
+                        <span class="table-title">路口实时状态</span>
+                        <div class="filters">
+                            <input type="text" class="search-input" placeholder="搜索路口名称...">
+                            <button class="btn btn-secondary btn-sm">刷新</button>
+                        </div>
+                    </div>
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>路口ID</th>
+                                <th>路口名称</th>
+                                <th>当前阶段</th>
+                                <th>剩余时间</th>
+                                <th>控制模式</th>
+                                <th>流量状态</th>
+                                <th class="text-right">操作</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td class="font-mono">11010000100001</td>
+                                <td>建国门大街 × 朝阳门内大街</td>
+                                <td>阶段2 (东西直行)</td>
+                                <td>45秒</td>
+                                <td>自适应控制</td>
+                                <td><span class="badge badge-success">流畅</span></td>
+                                <td class="text-right">
+                                    <button class="btn btn-secondary btn-sm">监控</button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="font-mono">11010000100002</td>
+                                <td>长安街 × 王府井大街</td>
+                                <td>阶段1 (南北直行)</td>
+                                <td>28秒</td>
+                                <td>定时控制</td>
+                                <td><span class="badge badge-warning">拥堵</span></td>
+                                <td class="text-right">
+                                    <button class="btn btn-primary btn-sm">优化</button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="font-mono">11010000100003</td>
+                                <td>三环路 × 京广桥</td>
+                                <td>阶段3 (左转)</td>
+                                <td>15秒</td>
+                                <td>中心控制</td>
+                                <td><span class="badge badge-success">流畅</span></td>
+                                <td class="text-right">
+                                    <button class="btn btn-secondary btn-sm">监控</button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- 会话管理页面 -->
+            <div class="page-content" id="sessions">
+                <header class="page-header">
+                    <div>
+                        <h1 class="page-title">会话管理</h1>
+                        <p class="page-subtitle">管理客户端连接和订阅</p>
+                    </div>
+                </header>
+
+                <div class="grid grid-cols-2 mb-6">
+                    <div class="card">
+                        <div class="card-header">
+                            <span class="card-title">活跃会话</span>
+                        </div>
+                        <div class="card-value" id="active-sessions">18</div>
+                        <div class="card-change">个客户端在线</div>
+                    </div>
+                    <div class="card">
+                        <div class="card-header">
+                            <span class="card-title">订阅总数</span>
+                        </div>
+                        <div class="card-value" id="total-subscriptions">245</div>
+                        <div class="card-change">个消息订阅</div>
+                    </div>
+                </div>
+
+                <div class="table-container">
+                    <div class="table-header">
+                        <span class="table-title">客户端会话</span>
+                    </div>
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>会话ID</th>
+                                <th>客户端</th>
+                                <th>登录时间</th>
+                                <th>最后活动</th>
+                                <th>IP地址</th>
+                                <th>状态</th>
+                                <th class="text-right">操作</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td class="font-mono">abc123***</td>
+                                <td>CLIENT001</td>
+                                <td>10:30:15</td>
+                                <td>1分钟前</td>
+                                <td class="font-mono">192.168.1.100</td>
+                                <td><span class="badge badge-success">活跃</span></td>
+                                <td class="text-right">
+                                    <button class="btn btn-secondary btn-sm">详情</button>
+                                    <button class="btn btn-danger btn-sm">断开</button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="font-mono">def456***</td>
+                                <td>CLIENT002</td>
+                                <td>09:15:22</td>
+                                <td>30秒前</td>
+                                <td class="font-mono">192.168.1.101</td>
+                                <td><span class="badge badge-success">活跃</span></td>
+                                <td class="text-right">
+                                    <button class="btn btn-secondary btn-sm">详情</button>
+                                    <button class="btn btn-danger btn-sm">断开</button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- 系统操作页面 -->
+            <div class="page-content" id="operations">
+                <header class="page-header">
+                    <div>
+                        <h1 class="page-title">系统操作</h1>
+                        <p class="page-subtitle">执行GA/T 1049协议操作和管理任务</p>
+                    </div>
+                </header>
+
+                <div class="grid grid-cols-3 mb-6">
+                    <div class="card">
+                        <div class="card-header">
+                            <span class="card-title">快速操作</span>
+                        </div>
+                        <div style="display: flex; flex-direction: column; gap: 0.75rem;">
+                            <button class="btn btn-primary">查询系统状态</button>
+                            <button class="btn btn-secondary">发送心跳检测</button>
+                            <button class="btn btn-secondary">刷新设备列表</button>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <div class="card-header">
+                            <span class="card-title">配置管理</span>
+                        </div>
+                        <div style="display: flex; flex-direction: column; gap: 0.75rem;">
+                            <button class="btn btn-primary">下发配时方案</button>
+                            <button class="btn btn-secondary">更新预案参数</button>
+                            <button class="btn btn-secondary">检测器配置</button>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <div class="card-header">
+                            <span class="card-title">控制操作</span>
+                        </div>
+                        <div style="display: flex; flex-direction: column; gap: 0.75rem;">
+                            <button class="btn btn-primary">切换控制模式</button>
+                            <button class="btn btn-secondary">流向控制设置</button>
+                            <button class="btn btn-danger">紧急停用</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="table-container">
+                    <div class="table-header">
+                        <span class="table-title">操作历史</span>
+                    </div>
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>时间</th>
+                                <th>操作用户</th>
+                                <th>操作类型</th>
+                                <th>目标设备</th>
+                                <th>结果</th>
+                                <th class="text-right">详情</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td class="font-mono">14:30:15</td>
+                                <td>admin</td>
+                                <td>配时方案下发</td>
+                                <td class="font-mono">11010000100010001</td>
+                                <td><span class="badge badge-success">成功</span></td>
+                                <td class="text-right">
+                                    <button class="btn btn-secondary btn-sm">查看</button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="font-mono">14:25:08</td>
+                                <td>operator1</td>
+                                <td>控制模式切换</td>
+                                <td class="font-mono">11010000100020001</td>
+                                <td><span class="badge badge-warning">部分成功</span></td>
+                                <td class="text-right">
+                                    <button class="btn btn-secondary btn-sm">查看</button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="font-mono">14:20:33</td>
+                                <td>admin</td>
+                                <td>系统状态查询</td>
+                                <td>全部设备</td>
+                                <td><span class="badge badge-success">成功</span></td>
+                                <td class="text-right">
+                                    <button class="btn btn-secondary btn-sm">查看</button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- 日志查看页面 -->
+            <div class="page-content" id="logs">
+                <header class="page-header">
+                    <div>
+                        <h1 class="page-title">日志查看</h1>
+                        <p class="page-subtitle">查看系统运行日志和事件记录</p>
+                    </div>
+                    <div style="display: flex; gap: 1rem;">
+                        <button class="btn btn-secondary">导出日志</button>
+                        <button class="btn btn-primary">实时监控</button>
+                    </div>
+                </header>
+
+                <div class="log-panel">
+                    <div class="table-header">
+                        <span class="table-title">系统运行日志</span>
+                        <div class="filters">
+                            <select class="search-input" style="flex: none; width: 120px;">
+                                <option>所有级别</option>
+                                <option>INFO</option>
+                                <option>WARN</option>
+                                <option>ERROR</option>
+                            </select>
+                            <input type="text" class="search-input" placeholder="搜索日志内容...">
+                        </div>
+                    </div>
+                    <div class="log-content" style="max-height: 600px;">
+                        <div class="log-item">
+                            <div class="log-time">14:35:22</div>
+                            <div class="log-level info">INFO</div>
+                            <div class="log-message">客户端 CLIENT001 成功登录，分配会话token: abc123***</div>
+                        </div>
+                        <div class="log-item">
+                            <div class="log-time">14:34:15</div>
+                            <div class="log-level info">INFO</div>
+                            <div class="log-message">信号机 11010000100010001 上报路口状态，当前阶段: 2，剩余时间: 45秒</div>
+                        </div>
+                        <div class="log-item">
+                            <div class="log-time">14:33:08</div>
+                            <div class="log-level warn">WARN</div>
+                            <div class="log-message">信号机 11010000100020001 通信超时，尝试重连中...</div>
+                        </div>
+                        <div class="log-item">
+                            <div class="log-time">14:32:45</div>
+                            <div class="log-level info">INFO</div>
+                            <div class="log-message">处理 TSCCmd 操作: Get SysInfo，目标设备: 11010000100030001</div>
+                        </div>
+                        <div class="log-item">
+                            <div class="log-time">14:31:30</div>
+                            <div class="log-level error">ERROR</div>
+                            <div class="log-message">信号机 11010000100040001 报告检测器故障，故障类型: HARDWARE_ERROR</div>
+                        </div>
+                        <div class="log-item">
+                            <div class="log-time">14:30:18</div>
+                            <div class="log-level info">INFO</div>
+                            <div class="log-message">订阅管理: 客户端 CLIENT002 订阅 CrossState 消息推送</div>
+                        </div>
+                        <div class="log-item">
+                            <div class="log-time">14:29:55</div>
+                            <div class="log-level info">INFO</div>
+                            <div class="log-message">配时方案下发成功，目标路口: 11010000100001，方案编号: 5</div>
+                        </div>
+                        <div class="log-item">
+                            <div class="log-time">14:28:42</div>
+                            <div class="log-level warn">WARN</div>
+                            <div class="log-message">会话 def456*** 心跳超时，标记为可能断线状态</div>
+                        </div>
+                        <div class="log-item">
+                            <div class="log-time">14:27:33</div>
+                            <div class="log-level info">INFO</div>
+                            <div class="log-message">TCP服务器启动完成，监听端口: 9999</div>
+                        </div>
+                        <div class="log-item">
+                            <div class="log-time">14:26:15</div>
+                            <div class="log-level info">INFO</div>
+                            <div class="log-message">GA/T 1049.1协议处理器初始化完成</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        // 页面导航功能
+        document.addEventListener('DOMContentLoaded', function() {
+            const navLinks = document.querySelectorAll('.nav-link');
+            const pageContents = document.querySelectorAll('.page-content');
+
+            navLinks.forEach(link => {
+                link.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    
+                    // 移除所有active类
+                    navLinks.forEach(nl => nl.classList.remove('active'));
+                    pageContents.forEach(pc => pc.classList.remove('active'));
+                    
+                    // 添加active类到当前项
+                    this.classList.add('active');
+                    const targetPage = this.getAttribute('data-page');
+                    document.getElementById(targetPage).classList.add('active');
+                });
+            });
+        });
+
+        // 模拟数据更新
+        function updateStatistics() {
+            const stats = {
+                connections: Math.floor(Math.random() * 10) + 20,
+                controllers: Math.floor(Math.random() * 20) + 150,
+                messages: (Math.random() * 0.5 + 0.8).toFixed(1) + 'K',
+                sessions: Math.floor(Math.random() * 5) + 15,
+                subscriptions: Math.floor(Math.random() * 50) + 200
+            };
+
+            // 更新统计数字
+            const elements = {
+                'stat-connections': stats.connections,
+                'stat-controllers': stats.controllers,
+                'stat-messages': stats.messages,
+                'active-sessions': stats.sessions,
+                'total-subscriptions': stats.subscriptions
+            };
+
+            Object.keys(elements).forEach(id => {
+                const element = document.getElementById(id);
+                if (element) {
+                    element.textContent = elements[id];
+                }
+            });
+        }
+
+        // 每30秒更新一次数据
+        setInterval(updateStatistics, 30000);
+        
+        // 初始加载
+        updateStatistics();
+
+        // 模拟实时日志更新
+        function addLogEntry() {
+            const logContent = document.querySelector('.log-content');
+            if (!logContent) return;
+
+            const logTypes = ['info', 'warn', 'error'];
+            const messages = [
+                '客户端连接建立成功',
+                '信号机状态更新',
+                '配时方案下发完成',
+                '检测器数据上报',
+                '会话心跳检测',
+                '系统性能监控'
+            ];
+
+            const now = new Date();
+            const timeStr = now.getHours().toString().padStart(2, '0') + ':' + 
+                           now.getMinutes().toString().padStart(2, '0') + ':' + 
+                           now.getSeconds().toString().padStart(2, '0');
+
+            const logType = logTypes[Math.floor(Math.random() * logTypes.length)];
+            const message = messages[Math.floor(Math.random() * messages.length)];
+
+            const logItem = document.createElement('div');
+            logItem.className = 'log-item';
+            logItem.innerHTML = `
+                <div class="log-time">${timeStr}</div>
+                <div class="log-level ${logType}">${logType.toUpperCase()}</div>
+                <div class="log-message">${message}</div>
+            `;
+
+            logContent.insertBefore(logItem, logContent.firstChild);
+
+            // 保持最多50条日志
+            const logItems = logContent.querySelectorAll('.log-item');
+            if (logItems.length > 50) {
+                logItems[logItems.length - 1].remove();
+            }
+        }
+
+        // 每20秒添加一条新日志（仅在日志页面）
+        setInterval(() => {
+            if (document.getElementById('logs').classList.contains('active')) {
+                addLogEntry();
+            }
+        }, 20000);
+    </script>
+</body>
+</html>

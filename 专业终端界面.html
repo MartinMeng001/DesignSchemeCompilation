@@ -1,0 +1,846 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GA/T 1049.2 专业控制终端</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Courier New', monospace;
+            background: #0a0a0a;
+            color: #00ff00;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        .terminal-container {
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            background: linear-gradient(135deg, #000000 0%, #1a1a1a 100%);
+            position: relative;
+        }
+
+        .terminal-header {
+            background: rgba(0, 255, 0, 0.1);
+            border-bottom: 2px solid #00ff00;
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-family: 'Courier New', monospace;
+        }
+
+        .terminal-title {
+            font-size: 1.2rem;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .system-status {
+            display: flex;
+            gap: 2rem;
+            font-size: 0.9rem;
+        }
+
+        .status-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .blink {
+            animation: blink 1s infinite;
+        }
+
+        @keyframes blink {
+            0%, 50% { opacity: 1; }
+            51%, 100% { opacity: 0.3; }
+        }
+
+        .main-grid {
+            flex: 1;
+            display: grid;
+            grid-template-columns: 1fr 400px;
+            gap: 2px;
+            background: #00ff00;
+        }
+
+        .left-panel {
+            background: #0a0a0a;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .right-panel {
+            background: #0a0a0a;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .panel-header {
+            background: rgba(0, 255, 0, 0.2);
+            padding: 0.8rem 1rem;
+            border-bottom: 1px solid #00ff00;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .command-area {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .output-window {
+            flex: 1;
+            padding: 1rem;
+            overflow-y: auto;
+            background: rgba(0, 0, 0, 0.8);
+            font-size: 0.85rem;
+            line-height: 1.4;
+        }
+
+        .command-line {
+            margin-bottom: 0.5rem;
+        }
+
+        .prompt {
+            color: #ffff00;
+        }
+
+        .command {
+            color: #00ffff;
+        }
+
+        .response {
+            color: #00ff00;
+            margin-left: 2rem;
+        }
+
+        .error {
+            color: #ff0000;
+        }
+
+        .warning {
+            color: #ffa500;
+        }
+
+        .input-area {
+            background: rgba(0, 255, 0, 0.1);
+            padding: 1rem;
+            border-top: 1px solid #00ff00;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .command-input {
+            flex: 1;
+            background: transparent;
+            border: none;
+            color: #00ff00;
+            font-family: 'Courier New', monospace;
+            font-size: 1rem;
+            outline: none;
+        }
+
+        .command-input::placeholder {
+            color: rgba(0, 255, 0, 0.5);
+        }
+
+        .quick-commands {
+            padding: 1rem;
+            overflow-y: auto;
+        }
+
+        .command-category {
+            margin-bottom: 2rem;
+        }
+
+        .category-title {
+            color: #ffff00;
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid rgba(255, 255, 0, 0.3);
+            font-weight: bold;
+        }
+
+        .command-list {
+            list-style: none;
+        }
+
+        .command-item {
+            margin-bottom: 0.5rem;
+            padding: 0.5rem;
+            background: rgba(0, 255, 0, 0.05);
+            border-left: 3px solid #00ff00;
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+
+        .command-item:hover {
+            background: rgba(0, 255, 0, 0.15);
+        }
+
+        .command-name {
+            color: #00ffff;
+            font-weight: bold;
+        }
+
+        .command-desc {
+            color: rgba(0, 255, 0, 0.7);
+            font-size: 0.8rem;
+            margin-top: 0.2rem;
+        }
+
+        .status-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1rem;
+            padding: 1rem;
+        }
+
+        .status-card {
+            background: rgba(0, 255, 0, 0.05);
+            border: 1px solid rgba(0, 255, 0, 0.3);
+            padding: 1rem;
+            text-align: center;
+        }
+
+        .status-value {
+            font-size: 1.5rem;
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+        }
+
+        .status-label {
+            font-size: 0.8rem;
+            opacity: 0.7;
+        }
+
+        .connection-info {
+            padding: 1rem;
+            background: rgba(0, 255, 0, 0.05);
+            border: 1px solid rgba(0, 255, 0, 0.3);
+            margin-bottom: 1rem;
+        }
+
+        .connection-details {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .detail-item {
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .detail-label {
+            opacity: 0.7;
+        }
+
+        .detail-value {
+            color: #00ffff;
+        }
+
+        .scrollbar::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .scrollbar::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.5);
+        }
+
+        .scrollbar::-webkit-scrollbar-thumb {
+            background: rgba(0, 255, 0, 0.5);
+            border-radius: 4px;
+        }
+
+        .ascii-art {
+            color: rgba(0, 255, 0, 0.3);
+            font-size: 0.7rem;
+            line-height: 1;
+            margin-bottom: 1rem;
+        }
+
+        .intersection-display {
+            padding: 1rem;
+            background: rgba(0, 255, 0, 0.05);
+            border: 1px solid rgba(0, 255, 0, 0.3);
+            margin-bottom: 1rem;
+            font-family: monospace;
+        }
+
+        .intersection-map {
+            text-align: center;
+            line-height: 1.2;
+            margin: 1rem 0;
+        }
+
+        .phase-display {
+            margin-top: 1rem;
+            padding: 0.5rem;
+            background: rgba(0, 0, 0, 0.5);
+            border-left: 3px solid #00ff00;
+        }
+
+        .hotkey-hint {
+            position: absolute;
+            bottom: 1rem;
+            left: 1rem;
+            font-size: 0.8rem;
+            color: rgba(0, 255, 0, 0.5);
+        }
+
+        .cursor::after {
+            content: '█';
+            animation: blink 1s infinite;
+        }
+    </style>
+</head>
+<body>
+    <div class="terminal-container">
+        <div class="terminal-header">
+            <div class="terminal-title">GA/T 1049.2 Traffic Signal Control Terminal</div>
+            <div class="system-status">
+                <div class="status-item">
+                    <span class="blink">●</span>
+                    <span>ONLINE</span>
+                </div>
+                <div class="status-item">
+                    <span>SYS:</span>
+                    <span>UTCS</span>
+                </div>
+                <div class="status-item">
+                    <span>TIME:</span>
+                    <span id="terminal-time">15:30:25</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="main-grid">
+            <div class="left-panel">
+                <div class="panel-header">Command Interface</div>
+                <div class="command-area">
+                    <div class="output-window scrollbar" id="outputWindow">
+                        <div class="ascii-art">
+ ╔═══════════════════════════════════════════════════════════════╗
+ ║        GA/T 1049.2 交通信号控制系统专业终端 v2.0            ║
+ ║                                                               ║
+ ║  支持协议: GA/T 1049.1-2013, GA/T 1049.2                    ║
+ ║  连接状态: TCP CONNECTED (localhost:9999)                    ║
+ ║  客户端ID: 110100001                                          ║
+ ╚═══════════════════════════════════════════════════════════════╝
+                        </div>
+                        <div class="command-line">
+                            <span class="prompt">UTCS-110100001$</span>
+                            <span class="command">gat1049 --login --user=tsc_client</span>
+                        </div>
+                        <div class="response">
+                            [2025-06-23 15:30:25] 连接服务器成功: localhost:9999<br>
+                            [2025-06-23 15:30:26] 用户认证成功: tsc_client<br>
+                            [2025-06-23 15:30:26] 获取会话令牌: TKN_20250623153026_001<br>
+                            [2025-06-23 15:30:27] 会话建立完成，等待指令...<br>
+                        </div>
+                        
+                        <div class="command-line">
+                            <span class="prompt">UTCS-110100001$</span>
+                            <span class="command">subscribe --type=PUSH --operation=Notify --object=CrossState</span>
+                        </div>
+                        <div class="response">
+                            [2025-06-23 15:30:28] 订阅请求发送成功<br>
+                            [2025-06-23 15:30:28] 订阅确认: CrossState 数据推送已启用<br>
+                        </div>
+
+                        <div class="command-line">
+                            <span class="prompt">UTCS-110100001$</span>
+                            <span class="command">query --object=SysInfo</span>
+                        </div>
+                        <div class="response">
+                            [2025-06-23 15:30:30] 查询系统信息...<br>
+                            ┌─────────────────────────────────────────┐<br>
+                            │ 系统类型: UTCS (城市交通控制系统)       │<br>
+                            │ 软件版本: GA/T-1049.2-V2.0            │<br>
+                            │ 协议版本: 1.0                          │<br>
+                            │ 设备厂商: TrafficTech Inc.             │<br>
+                            │ 启动时间: 2025-06-23 08:00:00          │<br>
+                            │ 运行时长: 7小时30分25秒                │<br>
+                            └─────────────────────────────────────────┘<br>
+                        </div>
+
+                        <div class="command-line">
+                            <span class="prompt">UTCS-110100001$</span>
+                            <span class="command">heartbeat</span>
+                        </div>
+                        <div class="response">
+                            [2025-06-23 15:30:35] 心跳发送成功 - 连接正常<br>
+                        </div>
+
+                        <div class="command-line warning">
+                            <span class="prompt">UTCS-110100001$</span>
+                            <span style="color: #ffa500;">[PUSH] CrossState 数据推送</span>
+                        </div>
+                        <div class="response">
+                            [2025-06-23 15:30:40] 收到路口状态推送数据<br>
+                            路口: 110100001 | 当前阶段: 1 | 剩余时间: 25秒 | 信号: 红灯<br>
+                            路口: 110100002 | 当前阶段: 3 | 剩余时间: 42秒 | 信号: 绿灯<br>
+                        </div>
+
+                        <div class="command-line">
+                            <span class="prompt">UTCS-110100001$</span>
+                            <span class="cursor"></span>
+                        </div>
+                    </div>
+                    <div class="input-area">
+                        <span class="prompt">UTCS-110100001$</span>
+                        <input type="text" class="command-input" id="commandInput" 
+                               placeholder="输入命令... (按Tab查看可用命令)" 
+                               autocomplete="off">
+                    </div>
+                </div>
+            </div>
+
+            <div class="right-panel">
+                <div class="panel-header">System Monitor & Quick Commands</div>
+                
+                <div class="connection-info">
+                    <div style="font-weight: bold; color: #ffff00; margin-bottom: 0.5rem;">CONNECTION STATUS</div>
+                    <div class="connection-details">
+                        <div class="detail-item">
+                            <span class="detail-label">服务器:</span>
+                            <span class="detail-value">localhost:9999</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">状态:</span>
+                            <span class="detail-value blink">CONNECTED</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">会话:</span>
+                            <span class="detail-value">ACTIVE</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">令牌:</span>
+                            <span class="detail-value">TKN_***026_001</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="status-grid">
+                    <div class="status-card">
+                        <div class="status-value">12</div>
+                        <div class="status-label">在线路口</div>
+                    </div>
+                    <div class="status-card">
+                        <div class="status-value" style="color: #00ffff;">1,247</div>
+                        <div class="status-label">处理消息</div>
+                    </div>
+                    <div class="status-card">
+                        <div class="status-value" style="color: #ffff00;">3</div>
+                        <div class="status-label">活跃订阅</div>
+                    </div>
+                    <div class="status-card">
+                        <div class="status-value" style="color: #ffa500;">2</div>
+                        <div class="status-label">待处理告警</div>
+                    </div>
+                </div>
+
+                <div class="intersection-display">
+                    <div style="font-weight: bold; color: #ffff00; margin-bottom: 0.5rem;">INTERSECTION MAP</div>
+                    <div class="intersection-map">
+                        <div>     │ N │     </div>
+                        <div>     │ ↑ │     </div>
+                        <div> ────┼───┼──── </div>
+                        <div> W ← │ ● │ → E </div>
+                        <div> ────┼───┼──── </div>
+                        <div>     │ ↓ │     </div>
+                        <div>     │ S │     </div>
+                    </div>
+                    <div class="phase-display">
+                        <div>当前阶段: 1 | 剩余: 25秒</div>
+                        <div style="color: #ff0000;">北向: 红灯 | 南向: 红灯</div>
+                        <div style="color: #00ff00;">东向: 绿灯 | 西向: 绿灯</div>
+                    </div>
+                </div>
+
+                <div class="quick-commands scrollbar">
+                    <div class="command-category">
+                        <div class="category-title">基础操作</div>
+                        <ul class="command-list">
+                            <li class="command-item" onclick="executeCommand('gat1049 --login --user=tsc_client')">
+                                <div class="command-name">login</div>
+                                <div class="command-desc">用户登录认证</div>
+                            </li>
+                            <li class="command-item" onclick="executeCommand('heartbeat')">
+                                <div class="command-name">heartbeat</div>
+                                <div class="command-desc">发送心跳消息</div>
+                            </li>
+                            <li class="command-item" onclick="executeCommand('logout')">
+                                <div class="command-name">logout</div>
+                                <div class="command-desc">用户登出</div>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <div class="command-category">
+                        <div class="category-title">数据查询</div>
+                        <ul class="command-list">
+                            <li class="command-item" onclick="executeCommand('query --object=SysInfo')">
+                                <div class="command-name">query SysInfo</div>
+                                <div class="command-desc">查询系统信息</div>
+                            </li>
+                            <li class="command-item" onclick="executeCommand('query --object=CrossState')">
+                                <div class="command-name">query CrossState</div>
+                                <div class="command-desc">查询路口状态</div>
+                            </li>
+                            <li class="command-item" onclick="executeCommand('query --object=CrossCycle')">
+                                <div class="command-name">query CrossCycle</div>
+                                <div class="command-desc">查询周期信息</div>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <div class="command-category">
+                        <div class="category-title">订阅管理</div>
+                        <ul class="command-list">
+                            <li class="command-item" onclick="executeCommand('subscribe --type=PUSH --operation=Notify --object=CrossState')">
+                                <div class="command-name">subscribe CrossState</div>
+                                <div class="command-desc">订阅路口状态</div>
+                            </li>
+                            <li class="command-item" onclick="executeCommand('subscribe --type=PUSH --operation=Notify --object=TrafficData')">
+                                <div class="command-name">subscribe TrafficData</div>
+                                <div class="command-desc">订阅交通流数据</div>
+                            </li>
+                            <li class="command-item" onclick="executeCommand('unsubscribe --object=*')">
+                                <div class="command-name">unsubscribe all</div>
+                                <div class="command-desc">取消所有订阅</div>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <div class="command-category">
+                        <div class="category-title">信号控制</div>
+                        <ul class="command-list">
+                            <li class="command-item" onclick="executeCommand('set --object=StageCtrl --cross=110100001 --stage=1')">
+                                <div class="command-name">stage control</div>
+                                <div class="command-desc">阶段干预控制</div>
+                            </li>
+                            <li class="command-item" onclick="executeCommand('set --object=CenterPlan --cross=110100001 --plan=1')">
+                                <div class="command-name">center plan</div>
+                                <div class="command-desc">中心预案控制</div>
+                            </li>
+                            <li class="command-item" onclick="executeCommand('set --object=lockFlowDirection --cross=110100001 --direction=NORTH')">
+                                <div class="command-name">lock flow</div>
+                                <div class="command-desc">锁定交通流向</div>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <div class="command-category">
+                        <div class="category-title">系统管理</div>
+                        <ul class="command-list">
+                            <li class="command-item" onclick="executeCommand('clear')">
+                                <div class="command-name">clear</div>
+                                <div class="command-desc">清空终端输出</div>
+                            </li>
+                            <li class="command-item" onclick="executeCommand('help')">
+                                <div class="command-name">help</div>
+                                <div class="command-desc">显示帮助信息</div>
+                            </li>
+                            <li class="command-item" onclick="executeCommand('status')">
+                                <div class="command-name">status</div>
+                                <div class="command-desc">显示系统状态</div>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="hotkey-hint">
+            [F1] 帮助 | [F2] 清屏 | [F3] 状态 | [F4] 订阅 | [Tab] 命令补全 | [↑↓] 历史命令
+        </div>
+    </div>
+
+    <script>
+        // 命令历史
+        let commandHistory = [];
+        let historyIndex = -1;
+        
+        // 更新时间
+        function updateTime() {
+            const now = new Date();
+            document.getElementById('terminal-time').textContent = now.toLocaleTimeString();
+        }
+        setInterval(updateTime, 1000);
+
+        // 获取输出窗口和输入框
+        const outputWindow = document.getElementById('outputWindow');
+        const commandInput = document.getElementById('commandInput');
+
+        // 命令输入处理
+        commandInput.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') {
+                const command = this.value.trim();
+                if (command) {
+                    executeCommand(command);
+                    commandHistory.unshift(command);
+                    historyIndex = -1;
+                    this.value = '';
+                }
+            } else if (e.key === 'ArrowUp') {
+                e.preventDefault();
+                if (historyIndex < commandHistory.length - 1) {
+                    historyIndex++;
+                    this.value = commandHistory[historyIndex];
+                }
+            } else if (e.key === 'ArrowDown') {
+                e.preventDefault();
+                if (historyIndex > 0) {
+                    historyIndex--;
+                    this.value = commandHistory[historyIndex];
+                } else if (historyIndex === 0) {
+                    historyIndex = -1;
+                    this.value = '';
+                }
+            } else if (e.key === 'Tab') {
+                e.preventDefault();
+                showCommandSuggestions(this.value);
+            }
+        });
+
+        // 执行命令
+        function executeCommand(command) {
+            const timestamp = new Date().toLocaleTimeString();
+            
+            // 显示用户输入的命令
+            appendToOutput(`<div class="command-line">
+                <span class="prompt">UTCS-110100001$</span>
+                <span class="command">${command}</span>
+            </div>`);
+
+            // 处理命令
+            processCommand(command, timestamp);
+            
+            // 滚动到底部
+            outputWindow.scrollTop = outputWindow.scrollHeight;
+        }
+
+        // 处理命令逻辑
+        function processCommand(command, timestamp) {
+            const cmd = command.toLowerCase().trim();
+            
+            if (cmd === 'clear') {
+                outputWindow.innerHTML = '';
+                return;
+            }
+            
+            if (cmd === 'help') {
+                appendToOutput(`<div class="response">
+                    [${timestamp}] GA/T 1049.2 交通信号控制系统终端帮助<br>
+                    <br>
+                    基础命令:<br>
+                    &nbsp;&nbsp;login                - 用户登录<br>
+                    &nbsp;&nbsp;logout               - 用户登出<br>
+                    &nbsp;&nbsp;heartbeat            - 发送心跳<br>
+                    &nbsp;&nbsp;clear                - 清空屏幕<br>
+                    &nbsp;&nbsp;status               - 显示状态<br>
+                    <br>
+                    查询命令:<br>
+                    &nbsp;&nbsp;query --object=SysInfo      - 查询系统信息<br>
+                    &nbsp;&nbsp;query --object=CrossState   - 查询路口状态<br>
+                    &nbsp;&nbsp;query --object=CrossCycle   - 查询周期信息<br>
+                    <br>
+                    订阅命令:<br>
+                    &nbsp;&nbsp;subscribe --type=PUSH --operation=Notify --object=CrossState<br>
+                    &nbsp;&nbsp;unsubscribe --object=*       - 取消所有订阅<br>
+                </div>`);
+                return;
+            }
+            
+            if (cmd === 'status') {
+                appendToOutput(`<div class="response">
+                    [${timestamp}] 系统状态报告<br>
+                    ┌─────────────────────────────────────────┐<br>
+                    │ 连接状态: ONLINE                        │<br>
+                    │ 会话状态: ACTIVE                        │<br>
+                    │ 在线路口: 12个                          │<br>
+                    │ 活跃订阅: 3个                           │<br>
+                    │ 处理消息: 1,247条                       │<br>
+                    │ 系统负载: 正常                          │<br>
+                    └─────────────────────────────────────────┘<br>
+                </div>`);
+                return;
+            }
+            
+            if (cmd.startsWith('query')) {
+                handleQueryCommand(command, timestamp);
+                return;
+            }
+            
+            if (cmd.startsWith('subscribe')) {
+                handleSubscribeCommand(command, timestamp);
+                return;
+            }
+            
+            if (cmd.startsWith('unsubscribe')) {
+                appendToOutput(`<div class="response">
+                    [${timestamp}] 取消订阅请求已发送<br>
+                    [${timestamp}] 所有数据订阅已取消<br>
+                </div>`);
+                return;
+            }
+            
+            if (cmd === 'heartbeat') {
+                appendToOutput(`<div class="response">
+                    [${timestamp}] 心跳发送成功 - 连接正常<br>
+                </div>`);
+                return;
+            }
+            
+            if (cmd.includes('login')) {
+                appendToOutput(`<div class="response">
+                    [${timestamp}] 正在执行登录...<br>
+                    [${timestamp}] 用户认证成功<br>
+                    [${timestamp}] 会话建立完成<br>
+                </div>`);
+                return;
+            }
+            
+            if (cmd === 'logout') {
+                appendToOutput(`<div class="response">
+                    [${timestamp}] 正在登出...<br>
+                    [${timestamp}] 会话已结束<br>
+                    [${timestamp}] 连接保持活跃<br>
+                </div>`);
+                return;
+            }
+            
+            // 未知命令
+            appendToOutput(`<div class="error">
+                [${timestamp}] 错误: 未知命令 '${command}'<br>
+                输入 'help' 查看可用命令<br>
+            </div>`);
+        }
+
+        // 处理查询命令
+        function handleQueryCommand(command, timestamp) {
+            if (command.includes('SysInfo')) {
+                appendToOutput(`<div class="response">
+                    [${timestamp}] 查询系统信息...<br>
+                    ┌─────────────────────────────────────────┐<br>
+                    │ 系统类型: UTCS (城市交通控制系统)       │<br>
+                    │ 软件版本: GA/T-1049.2-V2.0            │<br>
+                    │ 协议版本: 1.0                          │<br>
+                    │ 设备厂商: TrafficTech Inc.             │<br>
+                    │ 启动时间: 2025-06-23 08:00:00          │<br>
+                    │ 运行时长: 7小时30分25秒                │<br>
+                    └─────────────────────────────────────────┘<br>
+                </div>`);
+            } else if (command.includes('CrossState')) {
+                appendToOutput(`<div class="response">
+                    [${timestamp}] 查询路口状态...<br>
+                    路口 110100001: 阶段1, 红灯, 剩余25秒<br>
+                    路口 110100002: 阶段3, 绿灯, 剩余42秒<br>
+                    路口 110100003: 阶段2, 黄灯, 剩余3秒<br>
+                </div>`);
+            } else if (command.includes('CrossCycle')) {
+                appendToOutput(`<div class="response">
+                    [${timestamp}] 查询周期信息...<br>
+                    当前周期: 120秒<br>
+                    已运行: 85秒<br>
+                    剩余时间: 35秒<br>
+                    周期进度: ████████░░ 70%<br>
+                </div>`);
+            }
+        }
+
+        // 处理订阅命令
+        function handleSubscribeCommand(command, timestamp) {
+            const objectMatch = command.match(/--object=(\w+)/);
+            const objectName = objectMatch ? objectMatch[1] : 'Unknown';
+            
+            appendToOutput(`<div class="response">
+                [${timestamp}] 发送订阅请求: ${objectName}<br>
+                [${timestamp}] 订阅确认: ${objectName} 数据推送已启用<br>
+            </div>`);
+        }
+
+        // 添加内容到输出窗口
+        function appendToOutput(content) {
+            outputWindow.innerHTML += content;
+        }
+
+        // 显示命令建议
+        function showCommandSuggestions(input) {
+            const suggestions = [
+                'login', 'logout', 'heartbeat', 'clear', 'help', 'status',
+                'query --object=SysInfo',
+                'query --object=CrossState',
+                'query --object=CrossCycle',
+                'subscribe --type=PUSH --operation=Notify --object=CrossState',
+                'unsubscribe --object=*'
+            ];
+            
+            const matches = suggestions.filter(cmd => cmd.startsWith(input.toLowerCase()));
+            if (matches.length > 0) {
+                commandInput.value = matches[0];
+            }
+        }
+
+        // 模拟数据推送
+        function simulateDataPush() {
+            const timestamp = new Date().toLocaleTimeString();
+            const pushData = [
+                '路口: 110100001 | 当前阶段: 1 | 剩余时间: 25秒 | 信号: 红灯',
+                '路口: 110100002 | 当前阶段: 3 | 剩余时间: 42秒 | 信号: 绿灯',
+                '路口: 110100003 | 当前阶段: 2 | 剩余时间: 3秒 | 信号: 黄灯'
+            ];
+            
+            appendToOutput(`<div class="command-line warning">
+                <span class="prompt">UTCS-110100001$</span>
+                <span style="color: #ffa500;">[PUSH] CrossState 数据推送</span>
+            </div>
+            <div class="response">
+                [${timestamp}] 收到路口状态推送数据<br>
+                ${pushData.join('<br>')}<br>
+            </div>`);
+            
+            outputWindow.scrollTop = outputWindow.scrollHeight;
+        }
+
+        // 定期模拟数据推送
+        setInterval(simulateDataPush, 15000);
+
+        // 快捷键处理
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'F1') {
+                e.preventDefault();
+                executeCommand('help');
+            } else if (e.key === 'F2') {
+                e.preventDefault();
+                executeCommand('clear');
+            } else if (e.key === 'F3') {
+                e.preventDefault();
+                executeCommand('status');
+            } else if (e.key === 'F4') {
+                e.preventDefault();
+                executeCommand('subscribe --type=PUSH --operation=Notify --object=CrossState');
+            }
+        });
+
+        // 自动聚焦到输入框
+        commandInput.focus();
+    </script>
+</body>
+</html>

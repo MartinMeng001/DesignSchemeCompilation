@@ -1,0 +1,823 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GA/T 1049.2 移动控制端</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #333;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        .app-container {
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+        }
+
+        .status-bar {
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            color: white;
+            padding: 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .status-left {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .connection-status {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.3rem 0.8rem;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 15px;
+            font-size: 0.85rem;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #00ff88;
+            animation: pulse 2s infinite;
+        }
+
+        .tab-bar {
+            display: flex;
+            background: white;
+            border-bottom: 1px solid #e0e0e0;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+        }
+
+        .tab {
+            flex: 1;
+            padding: 1rem;
+            text-align: center;
+            background: none;
+            border: none;
+            color: #666;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .tab.active {
+            color: #667eea;
+            font-weight: 600;
+        }
+
+        .tab.active::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            border-radius: 3px 3px 0 0;
+        }
+
+        .content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 1rem;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .quick-actions {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .action-card {
+            background: white;
+            border-radius: 15px;
+            padding: 1.5rem;
+            text-align: center;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.08);
+            transition: transform 0.3s ease;
+            border: 2px solid transparent;
+        }
+
+        .action-card:active {
+            transform: scale(0.95);
+            border-color: #667eea;
+        }
+
+        .action-icon {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+            display: block;
+        }
+
+        .action-label {
+            font-size: 0.9rem;
+            color: #666;
+            font-weight: 500;
+        }
+
+        .intersection-list {
+            background: white;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.08);
+        }
+
+        .intersection-item {
+            padding: 1rem;
+            border-bottom: 1px solid #f0f0f0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .intersection-item:last-child {
+            border-bottom: none;
+        }
+
+        .intersection-info {
+            flex: 1;
+        }
+
+        .intersection-id {
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 0.3rem;
+        }
+
+        .intersection-status {
+            font-size: 0.85rem;
+            color: #666;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .signal-indicator {
+            display: flex;
+            gap: 0.3rem;
+        }
+
+        .light {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            border: 1px solid #ddd;
+        }
+
+        .light.red { background: #ff4757; border-color: #ff4757; }
+        .light.yellow { background: #ffa502; border-color: #ffa502; }
+        .light.green { background: #2ed573; border-color: #2ed573; }
+
+        .control-panel {
+            background: white;
+            border-radius: 15px;
+            padding: 1.5rem;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.08);
+        }
+
+        .control-group {
+            margin-bottom: 2rem;
+        }
+
+        .control-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 1rem;
+        }
+
+        .control-buttons {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1rem;
+        }
+
+        .control-btn {
+            padding: 1rem;
+            border: none;
+            border-radius: 10px;
+            font-size: 0.9rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .control-btn.primary {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+        }
+
+        .control-btn.secondary {
+            background: #f8f9fa;
+            color: #666;
+            border: 1px solid #e0e0e0;
+        }
+
+        .control-btn:active {
+            transform: scale(0.95);
+        }
+
+        .data-card {
+            background: white;
+            border-radius: 15px;
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.08);
+        }
+
+        .data-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .data-title {
+            font-size: 1rem;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .data-value {
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: #667eea;
+            margin-bottom: 0.5rem;
+        }
+
+        .data-label {
+            font-size: 0.85rem;
+            color: #666;
+        }
+
+        .settings-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem 0;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .settings-item:last-child {
+            border-bottom: none;
+        }
+
+        .switch {
+            position: relative;
+            width: 50px;
+            height: 28px;
+            background: #ddd;
+            border-radius: 14px;
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+
+        .switch.active {
+            background: #667eea;
+        }
+
+        .switch::after {
+            content: '';
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            width: 24px;
+            height: 24px;
+            background: white;
+            border-radius: 50%;
+            transition: transform 0.3s ease;
+        }
+
+        .switch.active::after {
+            transform: translateX(22px);
+        }
+
+        .floating-btn {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            border: none;
+            color: white;
+            font-size: 1.5rem;
+            cursor: pointer;
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
+            transition: transform 0.3s ease;
+        }
+
+        .floating-btn:active {
+            transform: scale(0.9);
+        }
+
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+
+        .modal.show {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 20px;
+            padding: 2rem;
+            margin: 2rem;
+            max-width: 400px;
+            width: 100%;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            text-align: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .modal-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .form-group {
+            margin-bottom: 1rem;
+        }
+
+        .form-label {
+            display: block;
+            font-size: 0.9rem;
+            font-weight: 500;
+            color: #666;
+            margin-bottom: 0.5rem;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 0.8rem;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 1rem;
+        }
+
+        .form-select {
+            width: 100%;
+            padding: 0.8rem;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 1rem;
+            background: white;
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 1rem;
+            margin-top: 2rem;
+        }
+
+        .modal-btn {
+            flex: 1;
+            padding: 1rem;
+            border: none;
+            border-radius: 10px;
+            font-size: 1rem;
+            font-weight: 500;
+            cursor: pointer;
+        }
+
+        .modal-btn.primary {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+        }
+
+        .modal-btn.secondary {
+            background: #f8f9fa;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <div class="status-bar">
+            <div class="status-left">
+                <div class="connection-status">
+                    <div class="status-dot"></div>
+                    <span>已连接</span>
+                </div>
+                <span>🚦 路口控制</span>
+            </div>
+            <div id="current-time">15:30</div>
+        </div>
+
+        <div class="tab-bar">
+            <button class="tab active" onclick="switchTab('dashboard')">监控</button>
+            <button class="tab" onclick="switchTab('control')">控制</button>
+            <button class="tab" onclick="switchTab('data')">数据</button>
+            <button class="tab" onclick="switchTab('settings')">设置</button>
+        </div>
+
+        <div class="content">
+            <!-- 监控面板 -->
+            <div id="dashboard" class="tab-content active">
+                <div class="quick-actions">
+                    <div class="action-card" onclick="performQuickAction('login')">
+                        <span class="action-icon">🔐</span>
+                        <div class="action-label">重新登录</div>
+                    </div>
+                    <div class="action-card" onclick="performQuickAction('heartbeat')">
+                        <span class="action-icon">💓</span>
+                        <div class="action-label">发送心跳</div>
+                    </div>
+                    <div class="action-card" onclick="performQuickAction('subscribe')">
+                        <span class="action-icon">📡</span>
+                        <div class="action-label">订阅数据</div>
+                    </div>
+                    <div class="action-card" onclick="performQuickAction('emergency')">
+                        <span class="action-icon">🚨</span>
+                        <div class="action-label">紧急控制</div>
+                    </div>
+                </div>
+
+                <div class="intersection-list">
+                    <div class="intersection-item">
+                        <div class="intersection-info">
+                            <div class="intersection-id">路口 110100001</div>
+                            <div class="intersection-status">
+                                <div class="signal-indicator">
+                                    <div class="light red"></div>
+                                    <div class="light"></div>
+                                    <div class="light"></div>
+                                </div>
+                                <span>阶段1 | 剩余25s</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="intersection-item">
+                        <div class="intersection-info">
+                            <div class="intersection-id">路口 110100002</div>
+                            <div class="intersection-status">
+                                <div class="signal-indicator">
+                                    <div class="light"></div>
+                                    <div class="light"></div>
+                                    <div class="light green"></div>
+                                </div>
+                                <span>阶段3 | 剩余42s</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="intersection-item">
+                        <div class="intersection-info">
+                            <div class="intersection-id">路口 110100003</div>
+                            <div class="intersection-status">
+                                <div class="signal-indicator">
+                                    <div class="light"></div>
+                                    <div class="light yellow"></div>
+                                    <div class="light"></div>
+                                </div>
+                                <span>阶段2 | 剩余3s</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 控制面板 -->
+            <div id="control" class="tab-content">
+                <div class="control-panel">
+                    <div class="control-group">
+                        <div class="control-title">信号控制</div>
+                        <div class="control-buttons">
+                            <button class="control-btn primary" onclick="signalControl('manual')">手动控制</button>
+                            <button class="control-btn secondary" onclick="signalControl('auto')">自动控制</button>
+                            <button class="control-btn secondary" onclick="signalControl('flash')">黄闪模式</button>
+                            <button class="control-btn secondary" onclick="signalControl('off')">关灯模式</button>
+                        </div>
+                    </div>
+
+                    <div class="control-group">
+                        <div class="control-title">预案控制</div>
+                        <div class="control-buttons">
+                            <button class="control-btn primary" onclick="planControl('normal')">正常预案</button>
+                            <button class="control-btn secondary" onclick="planControl('peak')">高峰预案</button>
+                            <button class="control-btn secondary" onclick="planControl('night')">夜间预案</button>
+                            <button class="control-btn secondary" onclick="planControl('special')">特殊预案</button>
+                        </div>
+                    </div>
+
+                    <div class="control-group">
+                        <div class="control-title">流向控制</div>
+                        <div class="control-buttons">
+                            <button class="control-btn secondary" onclick="flowControl('lock')">锁定流向</button>
+                            <button class="control-btn secondary" onclick="flowControl('unlock')">解锁流向</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 数据面板 -->
+            <div id="data" class="tab-content">
+                <div class="data-card">
+                    <div class="data-header">
+                        <div class="data-title">消息统计</div>
+                    </div>
+                    <div class="data-value">1,247</div>
+                    <div class="data-label">今日处理消息数</div>
+                </div>
+
+                <div class="data-card">
+                    <div class="data-header">
+                        <div class="data-title">交通流量</div>
+                    </div>
+                    <div class="data-value">658</div>
+                    <div class="data-label">当前小时车流量</div>
+                </div>
+
+                <div class="data-card">
+                    <div class="data-header">
+                        <div class="data-title">系统状态</div>
+                    </div>
+                    <div class="data-value" style="color: #2ed573;">正常</div>
+                    <div class="data-label">在线路口: 12个</div>
+                </div>
+
+                <div class="data-card">
+                    <div class="data-header">
+                        <div class="data-title">告警信息</div>
+                    </div>
+                    <div class="data-value" style="color: #ffa502;">2</div>
+                    <div class="data-label">待处理告警</div>
+                </div>
+            </div>
+
+            <!-- 设置面板 -->
+            <div id="settings" class="tab-content">
+                <div class="control-panel">
+                    <div class="settings-item">
+                        <div>
+                            <div style="font-weight: 500;">自动重连</div>
+                            <div style="font-size: 0.85rem; color: #666;">连接断开时自动重连</div>
+                        </div>
+                        <div class="switch active" onclick="toggleSwitch(this)"></div>
+                    </div>
+                    <div class="settings-item">
+                        <div>
+                            <div style="font-weight: 500;">实时推送</div>
+                            <div style="font-size: 0.85rem; color: #666;">接收实时数据推送</div>
+                        </div>
+                        <div class="switch active" onclick="toggleSwitch(this)"></div>
+                    </div>
+                    <div class="settings-item">
+                        <div>
+                            <div style="font-weight: 500;">告警提醒</div>
+                            <div style="font-size: 0.85rem; color: #666;">系统异常时提醒</div>
+                        </div>
+                        <div class="switch active" onclick="toggleSwitch(this)"></div>
+                    </div>
+                    <div class="settings-item">
+                        <div>
+                            <div style="font-weight: 500;">服务器地址</div>
+                            <div style="font-size: 0.85rem; color: #666;">localhost:9999</div>
+                        </div>
+                        <button class="control-btn secondary" onclick="showServerConfig()">配置</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <button class="floating-btn" onclick="showQuickMenu()">⚡</button>
+    </div>
+
+    <!-- 服务器配置弹窗 -->
+    <div id="serverModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title">服务器配置</div>
+            </div>
+            <div class="form-group">
+                <label class="form-label">服务器地址</label>
+                <input type="text" class="form-input" value="localhost" id="serverHost">
+            </div>
+            <div class="form-group">
+                <label class="form-label">端口号</label>
+                <input type="number" class="form-input" value="9999" id="serverPort">
+            </div>
+            <div class="form-group">
+                <label class="form-label">客户端ID</label>
+                <input type="text" class="form-input" value="110100001" id="clientId">
+            </div>
+            <div class="modal-actions">
+                <button class="modal-btn secondary" onclick="closeModal('serverModal')">取消</button>
+                <button class="modal-btn primary" onclick="saveServerConfig()">保存</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 快速操作菜单 -->
+    <div id="quickModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title">快速操作</div>
+            </div>
+            <div class="control-buttons">
+                <button class="control-btn primary" onclick="performAction('query', 'SysInfo')">查询系统信息</button>
+                <button class="control-btn primary" onclick="performAction('query', 'CrossState')">查询路口状态</button>
+                <button class="control-btn secondary" onclick="performAction('subscribe', 'traffic')">订阅交通数据</button>
+                <button class="control-btn secondary" onclick="performAction('unsubscribe', 'all')">取消所有订阅</button>
+            </div>
+            <div class="modal-actions">
+                <button class="modal-btn secondary" onclick="closeModal('quickModal')">关闭</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 时间更新
+        function updateTime() {
+            const now = new Date();
+            document.getElementById('current-time').textContent = now.toLocaleTimeString('zh-CN', {
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+        }
+        setInterval(updateTime, 1000);
+
+        // 标签页切换
+        function switchTab(tabName) {
+            // 移除所有活跃状态
+            document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+            
+            // 激活选中的标签页
+            event.target.classList.add('active');
+            document.getElementById(tabName).classList.add('active');
+        }
+
+        // 快速操作
+        function performQuickAction(action) {
+            const timestamp = new Date().toLocaleTimeString();
+            let message = '';
+            
+            switch(action) {
+                case 'login':
+                    message = `${timestamp} - 执行重新登录`;
+                    break;
+                case 'heartbeat':
+                    message = `${timestamp} - 发送心跳消息`;
+                    break;
+                case 'subscribe':
+                    message = `${timestamp} - 订阅数据流`;
+                    break;
+                case 'emergency':
+                    message = `${timestamp} - 启动紧急控制`;
+                    break;
+            }
+            
+            // 显示操作反馈
+            showToast(message);
+        }
+
+        // 信号控制
+        function signalControl(mode) {
+            const modes = {
+                'manual': '手动控制',
+                'auto': '自动控制',
+                'flash': '黄闪模式',
+                'off': '关灯模式'
+            };
+            showToast(`切换到${modes[mode]}`);
+        }
+
+        // 预案控制
+        function planControl(plan) {
+            const plans = {
+                'normal': '正常预案',
+                'peak': '高峰预案',
+                'night': '夜间预案',
+                'special': '特殊预案'
+            };
+            showToast(`启用${plans[plan]}`);
+        }
+
+        // 流向控制
+        function flowControl(action) {
+            const actions = {
+                'lock': '锁定流向',
+                'unlock': '解锁流向'
+            };
+            showToast(`执行${actions[action]}`);
+        }
+
+        // 开关切换
+        function toggleSwitch(element) {
+            element.classList.toggle('active');
+        }
+
+        // 显示服务器配置
+        function showServerConfig() {
+            document.getElementById('serverModal').classList.add('show');
+        }
+
+        // 显示快速菜单
+        function showQuickMenu() {
+            document.getElementById('quickModal').classList.add('show');
+        }
+
+        // 关闭弹窗
+        function closeModal(modalId) {
+            document.getElementById(modalId).classList.remove('show');
+        }
+
+        // 保存服务器配置
+        function saveServerConfig() {
+            const host = document.getElementById('serverHost').value;
+            const port = document.getElementById('serverPort').value;
+            const clientId = document.getElementById('clientId').value;
+            
+            showToast(`服务器配置已保存: ${host}:${port}`);
+            closeModal('serverModal');
+        }
+
+        // 执行操作
+        function performAction(type, target) {
+            showToast(`执行${type}操作: ${target}`);
+            closeModal('quickModal');
+        }
+
+        // 显示提示消息
+        function showToast(message) {
+            // 创建提示元素
+            const toast = document.createElement('div');
+            toast.style.cssText = `
+                position: fixed;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                background: rgba(0, 0, 0, 0.8);
+                color: white;
+                padding: 1rem 2rem;
+                border-radius: 25px;
+                font-size: 0.9rem;
+                z-index: 2000;
+                backdrop-filter: blur(10px);
+            `;
+            toast.textContent = message;
+            
+            document.body.appendChild(toast);
+            
+            // 2秒后移除
+            setTimeout(() => {
+                document.body.removeChild(toast);
+            }, 2000);
+        }
+
+        // 点击外部关闭弹窗
+        document.querySelectorAll('.modal').forEach(modal => {
+            modal.addEventListener('click', function(e) {
+                if (e.target === this) {
+                    this.classList.remove('show');
+                }
+            });
+        });
+    </script>
+</body>
+</html>
