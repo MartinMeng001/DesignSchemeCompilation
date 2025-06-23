@@ -1,0 +1,680 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Web入口门户设计方案</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f5f7fa;
+            color: #333;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .design-section {
+            background: white;
+            margin-bottom: 40px;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            overflow: hidden;
+        }
+        
+        .design-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+        
+        .design-content {
+            padding: 30px;
+        }
+        
+        /* 方案一：卡片网格布局 */
+        .grid-layout {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 24px;
+            margin-top: 20px;
+        }
+        
+        .app-card {
+            background: white;
+            border-radius: 16px;
+            padding: 30px;
+            text-align: center;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+            cursor: pointer;
+            border: 2px solid transparent;
+        }
+        
+        .app-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 16px 48px rgba(0,0,0,0.15);
+            border-color: #667eea;
+        }
+        
+        .app-icon {
+            width: 64px;
+            height: 64px;
+            margin: 0 auto 16px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 28px;
+            color: white;
+        }
+        
+        .app-title {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #2d3748;
+        }
+        
+        .app-desc {
+            font-size: 14px;
+            color: #718096;
+            line-height: 1.5;
+        }
+        
+        /* 方案二：侧边栏导航 */
+        .sidebar-layout {
+            display: flex;
+            height: 600px;
+            border-radius: 12px;
+            overflow: hidden;
+        }
+        
+        .sidebar {
+            width: 280px;
+            background: #2d3748;
+            color: white;
+            padding: 30px 0;
+        }
+        
+        .sidebar-header {
+            padding: 0 30px 30px;
+            border-bottom: 1px solid #4a5568;
+        }
+        
+        .sidebar-title {
+            font-size: 24px;
+            font-weight: 700;
+        }
+        
+        .nav-menu {
+            padding: 20px 0;
+        }
+        
+        .nav-item {
+            display: flex;
+            align-items: center;
+            padding: 16px 30px;
+            cursor: pointer;
+            transition: all 0.2s;
+            border-left: 4px solid transparent;
+        }
+        
+        .nav-item:hover, .nav-item.active {
+            background: #4a5568;
+            border-left-color: #667eea;
+        }
+        
+        .nav-icon {
+            width: 20px;
+            height: 20px;
+            margin-right: 12px;
+            background: #667eea;
+            border-radius: 4px;
+        }
+        
+        .main-content {
+            flex: 1;
+            background: #f7fafc;
+            padding: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .welcome-card {
+            text-align: center;
+            max-width: 400px;
+        }
+        
+        .welcome-title {
+            font-size: 32px;
+            font-weight: 700;
+            color: #2d3748;
+            margin-bottom: 16px;
+        }
+        
+        .welcome-desc {
+            font-size: 16px;
+            color: #718096;
+            line-height: 1.6;
+        }
+        
+        /* 方案三：顶部导航 */
+        .top-nav-layout {
+            background: white;
+        }
+        
+        .top-navbar {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .logo {
+            font-size: 24px;
+            font-weight: 700;
+            color: white;
+        }
+        
+        .nav-tabs {
+            display: flex;
+            gap: 8px;
+        }
+        
+        .nav-tab {
+            padding: 12px 24px;
+            background: rgba(255,255,255,0.1);
+            color: white;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-weight: 500;
+        }
+        
+        .nav-tab:hover, .nav-tab.active {
+            background: rgba(255,255,255,0.2);
+        }
+        
+        .user-profile {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            color: white;
+        }
+        
+        .avatar {
+            width: 40px;
+            height: 40px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 50%;
+        }
+        
+        .top-content {
+            padding: 40px;
+        }
+        
+        .breadcrumb {
+            margin-bottom: 30px;
+            color: #718096;
+        }
+        
+        .content-area {
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 60px;
+            text-align: center;
+            border: 2px dashed #e2e8f0;
+        }
+        
+        /* 方案四：仪表板风格 */
+        .dashboard-layout {
+            background: #f8f9fa;
+        }
+        
+        .dashboard-header {
+            background: white;
+            padding: 24px 40px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .dashboard-title {
+            font-size: 28px;
+            font-weight: 700;
+            color: #2d3748;
+        }
+        
+        .search-bar {
+            display: flex;
+            align-items: center;
+            background: #f7fafc;
+            border-radius: 12px;
+            padding: 12px 20px;
+            min-width: 300px;
+        }
+        
+        .search-input {
+            border: none;
+            background: transparent;
+            outline: none;
+            flex: 1;
+            margin-left: 12px;
+            font-size: 14px;
+        }
+        
+        .dashboard-content {
+            padding: 40px;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+        
+        .stat-card {
+            background: white;
+            padding: 24px;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        
+        .stat-number {
+            font-size: 32px;
+            font-weight: 700;
+            color: #667eea;
+            margin-bottom: 8px;
+        }
+        
+        .stat-label {
+            font-size: 14px;
+            color: #718096;
+        }
+        
+        .apps-section {
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        
+        .section-header {
+            display: flex;
+            justify-content: between;
+            align-items: center;
+            margin-bottom: 24px;
+        }
+        
+        .section-title {
+            font-size: 20px;
+            font-weight: 600;
+            color: #2d3748;
+        }
+        
+        .add-btn {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+        
+        .add-btn:hover {
+            background: #5a67d8;
+        }
+        
+        .apps-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+            gap: 20px;
+        }
+        
+        .mini-app-card {
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .mini-app-card:hover {
+            background: #e2e8f0;
+        }
+        
+        .mini-app-icon {
+            width: 48px;
+            height: 48px;
+            margin: 0 auto 12px;
+            background: #667eea;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 20px;
+        }
+        
+        .mini-app-name {
+            font-size: 14px;
+            font-weight: 500;
+            color: #2d3748;
+        }
+        
+        .design-nav {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            padding: 16px;
+            z-index: 1000;
+        }
+        
+        .design-nav button {
+            display: block;
+            width: 100%;
+            margin-bottom: 8px;
+            padding: 8px 16px;
+            background: #f7fafc;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .design-nav button:hover, .design-nav button.active {
+            background: #667eea;
+            color: white;
+        }
+        
+        .design-nav button:last-child {
+            margin-bottom: 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="design-nav">
+        <button onclick="showDesign(1)" class="active">方案一</button>
+        <button onclick="showDesign(2)">方案二</button>
+        <button onclick="showDesign(3)">方案三</button>
+        <button onclick="showDesign(4)">方案四</button>
+    </div>
+
+    <div class="container">
+        <!-- 方案一：卡片网格布局 -->
+        <div class="design-section" id="design1">
+            <div class="design-header">
+                <h2>方案一：卡片网格布局</h2>
+                <p>简洁优雅的卡片式设计，适合应用数量较多的场景</p>
+            </div>
+            <div class="design-content">
+                <div class="grid-layout">
+                    <div class="app-card">
+                        <div class="app-icon">📊</div>
+                        <div class="app-title">数据分析系统</div>
+                        <div class="app-desc">企业数据分析与可视化平台，提供实时数据监控和报表生成</div>
+                    </div>
+                    <div class="app-card">
+                        <div class="app-icon">👥</div>
+                        <div class="app-title">人力资源管理</div>
+                        <div class="app-desc">员工信息管理、考勤打卡、薪资核算等HR全流程管理</div>
+                    </div>
+                    <div class="app-card">
+                        <div class="app-icon">💰</div>
+                        <div class="app-title">财务管理系统</div>
+                        <div class="app-desc">财务记账、发票管理、成本核算、财务报表等功能</div>
+                    </div>
+                    <div class="app-card">
+                        <div class="app-icon">📋</div>
+                        <div class="app-title">项目管理平台</div>
+                        <div class="app-desc">项目进度跟踪、任务分配、团队协作管理工具</div>
+                    </div>
+                    <div class="app-card">
+                        <div class="app-icon">🛒</div>
+                        <div class="app-title">采购管理系统</div>
+                        <div class="app-desc">供应商管理、采购申请、合同管理、库存控制</div>
+                    </div>
+                    <div class="app-card">
+                        <div class="app-icon">⚙️</div>
+                        <div class="app-title">系统设置</div>
+                        <div class="app-desc">用户权限管理、系统配置、日志查看等管理功能</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 方案二：侧边栏导航 -->
+        <div class="design-section" id="design2" style="display: none;">
+            <div class="design-header">
+                <h2>方案二：侧边栏导航</h2>
+                <p>经典的后台管理风格，清晰的层级结构</p>
+            </div>
+            <div class="design-content">
+                <div class="sidebar-layout">
+                    <div class="sidebar">
+                        <div class="sidebar-header">
+                            <div class="sidebar-title">企业门户</div>
+                        </div>
+                        <div class="nav-menu">
+                            <div class="nav-item active">
+                                <div class="nav-icon"></div>
+                                <span>工作台</span>
+                            </div>
+                            <div class="nav-item">
+                                <div class="nav-icon"></div>
+                                <span>数据分析系统</span>
+                            </div>
+                            <div class="nav-item">
+                                <div class="nav-icon"></div>
+                                <span>人力资源管理</span>
+                            </div>
+                            <div class="nav-item">
+                                <div class="nav-icon"></div>
+                                <span>财务管理系统</span>
+                            </div>
+                            <div class="nav-item">
+                                <div class="nav-icon"></div>
+                                <span>项目管理平台</span>
+                            </div>
+                            <div class="nav-item">
+                                <div class="nav-icon"></div>
+                                <span>采购管理系统</span>
+                            </div>
+                            <div class="nav-item">
+                                <div class="nav-icon"></div>
+                                <span>系统设置</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="main-content">
+                        <div class="welcome-card">
+                            <div class="welcome-title">欢迎使用企业门户</div>
+                            <div class="welcome-desc">选择左侧菜单项开始使用相应的业务系统。所有系统已集成统一身份认证，无需重复登录。</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 方案三：顶部导航 -->
+        <div class="design-section" id="design3" style="display: none;">
+            <div class="design-header">
+                <h2>方案三：顶部导航</h2>
+                <p>现代化顶部导航设计，空间利用率高</p>
+            </div>
+            <div class="design-content">
+                <div class="top-nav-layout">
+                    <div class="top-navbar">
+                        <div class="logo">企业门户</div>
+                        <div class="nav-tabs">
+                            <div class="nav-tab active">工作台</div>
+                            <div class="nav-tab">数据分析</div>
+                            <div class="nav-tab">人力资源</div>
+                            <div class="nav-tab">财务管理</div>
+                            <div class="nav-tab">项目管理</div>
+                            <div class="nav-tab">采购管理</div>
+                        </div>
+                        <div class="user-profile">
+                            <div class="avatar"></div>
+                            <span>张三</span>
+                        </div>
+                    </div>
+                    <div class="top-content">
+                        <div class="breadcrumb">首页 > 工作台 > 概览</div>
+                        <div class="content-area">
+                            <h3>主要内容区域</h3>
+                            <p>这里显示选中系统的具体内容</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 方案四：仪表板风格 -->
+        <div class="design-section" id="design4" style="display: none;">
+            <div class="design-header">
+                <h2>方案四：仪表板风格</h2>
+                <p>企业级仪表板设计，信息密度高，功能完整</p>
+            </div>
+            <div class="design-content">
+                <div class="dashboard-layout">
+                    <div class="dashboard-header">
+                        <div class="dashboard-title">企业运营中心</div>
+                        <div class="search-bar">
+                            <span>🔍</span>
+                            <input type="text" class="search-input" placeholder="搜索应用或功能...">
+                        </div>
+                    </div>
+                    <div class="dashboard-content">
+                        <div class="stats-grid">
+                            <div class="stat-card">
+                                <div class="stat-number">12</div>
+                                <div class="stat-label">已接入系统</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-number">1,234</div>
+                                <div class="stat-label">活跃用户</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-number">98.5%</div>
+                                <div class="stat-label">系统可用率</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-number">156</div>
+                                <div class="stat-label">今日访问</div>
+                            </div>
+                        </div>
+                        <div class="apps-section">
+                            <div class="section-header">
+                                <div class="section-title">应用中心</div>
+                                <button class="add-btn">+ 添加应用</button>
+                            </div>
+                            <div class="apps-grid">
+                                <div class="mini-app-card">
+                                    <div class="mini-app-icon">📊</div>
+                                    <div class="mini-app-name">数据分析</div>
+                                </div>
+                                <div class="mini-app-card">
+                                    <div class="mini-app-icon">👥</div>
+                                    <div class="mini-app-name">人力资源</div>
+                                </div>
+                                <div class="mini-app-card">
+                                    <div class="mini-app-icon">💰</div>
+                                    <div class="mini-app-name">财务管理</div>
+                                </div>
+                                <div class="mini-app-card">
+                                    <div class="mini-app-icon">📋</div>
+                                    <div class="mini-app-name">项目管理</div>
+                                </div>
+                                <div class="mini-app-card">
+                                    <div class="mini-app-icon">🛒</div>
+                                    <div class="mini-app-name">采购管理</div>
+                                </div>
+                                <div class="mini-app-card">
+                                    <div class="mini-app-icon">⚙️</div>
+                                    <div class="mini-app-name">系统设置</div>
+                                </div>
+                                <div class="mini-app-card">
+                                    <div class="mini-app-icon">📈</div>
+                                    <div class="mini-app-name">报表中心</div>
+                                </div>
+                                <div class="mini-app-card">
+                                    <div class="mini-app-icon">🔔</div>
+                                    <div class="mini-app-name">消息通知</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function showDesign(num) {
+            // 隐藏所有设计方案
+            for (let i = 1; i <= 4; i++) {
+                const design = document.getElementById('design' + i);
+                const button = document.querySelector(`.design-nav button:nth-child(${i})`);
+                if (i === num) {
+                    design.style.display = 'block';
+                    button.classList.add('active');
+                } else {
+                    design.style.display = 'none';
+                    button.classList.remove('active');
+                }
+            }
+        }
+
+        // 添加一些交互效果
+        document.addEventListener('DOMContentLoaded', function() {
+            // 为卡片添加点击效果
+            const cards = document.querySelectorAll('.app-card, .mini-app-card');
+            cards.forEach(card => {
+                card.addEventListener('click', function() {
+                    this.style.transform = 'scale(0.95)';
+                    setTimeout(() => {
+                        this.style.transform = '';
+                        alert('点击了应用：' + this.querySelector('.app-title, .mini-app-name').textContent);
+                    }, 150);
+                });
+            });
+
+            // 为导航项添加点击效果
+            const navItems = document.querySelectorAll('.nav-item, .nav-tab');
+            navItems.forEach(item => {
+                item.addEventListener('click', function() {
+                    // 移除同级别的active类
+                    this.parentNode.querySelectorAll('.nav-item, .nav-tab').forEach(sibling => {
+                        sibling.classList.remove('active');
+                    });
+                    // 添加active类到当前项
+                    this.classList.add('active');
+                });
+            });
+        });
+    </script>
+</body>
+</html>
